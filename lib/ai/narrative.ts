@@ -39,12 +39,13 @@ const sectionTitle = (key: (typeof SECTION_KEYS)[number], timezone: string) =>
 export const factsFor = (profile: Profile, stats: ReportStats) => ({
   profile: {
     username: profile.username,
-    fullName: profile.fullName,
-    biography: profile.biography,
+    // Left out when unknown (e.g. uploaded files) so the writer never treats a gap as a fact.
+    ...(profile.fullName ? { fullName: profile.fullName } : {}),
+    ...(profile.biography ? { biography: profile.biography } : {}),
     followers: profile.followers,
-    following: profile.following,
-    totalPostsAllTime: profile.totalPosts,
-    category: profile.category,
+    ...(profile.following != null ? { following: profile.following } : {}),
+    ...(profile.totalPosts != null ? { totalPostsAllTime: profile.totalPosts } : {}),
+    ...(profile.category ? { category: profile.category } : {}),
   },
   window: { ...stats.window, start: fmtDate(stats.window.start), end: fmtDate(stats.window.end) },
   overview: stats.overview,

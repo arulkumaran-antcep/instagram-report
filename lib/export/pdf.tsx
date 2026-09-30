@@ -197,7 +197,7 @@ const ReportPdf = ({ profile, stats, narrative }: { profile: Profile; stats: Rep
         <Text style={s.eyebrow}>Instagram content analysis</Text>
         <Text style={s.title}>@{profile.username}</Text>
         <Text style={s.subtitle}>
-          {[profile.fullName, profile.category, `${fmtInt(profile.followers)} followers`, `${fmtInt(profile.totalPosts)} posts in total`]
+          {[profile.fullName, profile.category, `${fmtInt(profile.followers)} followers`, profile.totalPosts != null ? `${fmtInt(profile.totalPosts)} posts in total` : null]
             .filter(Boolean)
             .join('  ·  ')}
         </Text>
@@ -215,7 +215,7 @@ const ReportPdf = ({ profile, stats, narrative }: { profile: Profile; stats: Rep
 
         <View style={s.kpis}>
           {[
-            { label: 'Followers', value: fmtCompact(profile.followers), note: `Follows ${fmtInt(profile.following)}` },
+            { label: 'Followers', value: fmtCompact(profile.followers), note: profile.following != null ? `Follows ${fmtInt(profile.following)}` : 'As provided' },
             { label: 'Posts / week', value: o.postsPerWeek.toFixed(1), note: `${fmtInt(o.posts)} posts in ${fmtInt(stats.window.days)} days` },
             { label: 'Engagement rate', value: fmtRate(o.engagementRate), note: 'Benchmark 1–3%' },
             { label: 'Avg / median', value: `${fmtCompact(o.avgEngagement)} / ${fmtCompact(o.medianEngagement)}`, note: 'engagement per post' },

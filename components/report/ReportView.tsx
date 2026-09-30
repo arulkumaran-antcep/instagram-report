@@ -151,7 +151,7 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
           </div>
           <dl className="grid grid-cols-3 divide-x divide-line rounded-xl border border-line bg-surface-low">
             {[
-              { k: 'Followers', v: fmtCompact(profile.followers), n: `follows ${fmtInt(profile.following)}` },
+              { k: 'Followers', v: fmtCompact(profile.followers), n: profile.following != null ? `follows ${fmtInt(profile.following)}` : 'as entered' },
               { k: 'Engagement rate', v: fmtRate(o.engagementRate), n: benchmark.text },
               { k: 'Posts analysed', v: fmtInt(o.posts), n: `${o.postsPerWeek.toFixed(1)} per week` },
             ].map((x) => (

@@ -24,8 +24,8 @@ export interface Profile {
   fullName: string;
   biography: string;
   followers: number;
-  following: number;
-  totalPosts: number;
+  following: number | null; // null when the data source doesn't include it (uploads)
+  totalPosts: number | null;
   isVerified: boolean;
   isBusiness: boolean;
   category: string | null;
