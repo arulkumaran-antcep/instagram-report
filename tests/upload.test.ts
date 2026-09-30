@@ -112,7 +112,13 @@ async function main() {
   await rejects('broken json', () => parseExport(Buffer.from('{oops'), 'x.json'), /not valid/i);
   await rejects('json that is not a list', () => parseExport(Buffer.from('{"a":1}'), 'x.json'), /list of posts/i);
   await rejects('corrupt xlsx', () => parseExport(Buffer.from('not a zip'), 'x.xlsx'), /could not be/i);
-  await rejects('profile-only export has no posts', () => parseExport(Buffer.from(JSON.stringify([{ username: 'a', followersCount: 5 }])), 'x.json'), /No posts/i);
+  await rejects('unrecognised export has no posts', () => parseExport(Buffer.from(JSON.stringify([{ foo: 'a' }])), 'x.json'), /No posts/i);
+
+  // An analysis workbook (this app's own output) is recognised and explained.
+  const analysis = Array.from({ length: 8 }, (_, i) => ({ Date: `2026-01-0${i + 1}`, URL: 'https://www.instagram.com/p/x/', Format: 'Image', Bucket: 'A', Likes: 10, Comments: 1, Engagement: 11 }));
+  await rejects('finished analysis workbook is explained', async () => parseExport(await toXlsx(analysis, 'All Posts'), 'Instagram Analysis.xlsx'), /finished analysis workbook/i);
+
+  await rejects('profile-only export is explained', () => parseExport(Buffer.from(JSON.stringify([{ username: 'a', followersCount: 5, postsCount: 9 }])), 'profile.json'), /profile-only export/i);
 
   // A workbook whose sheet is not called "Data" still works; a prototype-pollution key is ignored.
   const other = await parseExport(await toXlsx(items, 'Sheet1'), 'x.xlsx');

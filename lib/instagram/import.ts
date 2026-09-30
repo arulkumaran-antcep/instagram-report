@@ -115,6 +115,17 @@ export const parseExport = async (buffer: Buffer, filename: string, fallbackHand
 
   const postItems = items.filter((i) => i.id && i.timestamp && !i.error);
   if (postItems.length === 0) {
+    const columns = new Set(raw.flatMap((r) => Object.keys(r)));
+    if (columns.has('Bucket') || columns.has('Engagement') || columns.has('Performance Index')) {
+      throw new UserFacingError(
+        'This looks like a finished analysis workbook, not the scraper’s raw export. Upload the file downloaded from the Apify run’s dataset (Export → Excel, CSV or JSON), which has columns such as id, timestamp, likesCount and commentsCount.',
+      );
+    }
+    if (columns.has('followersCount') && columns.has('username') && !columns.has('timestamp')) {
+      throw new UserFacingError(
+        'This is a profile-only export (followers, bio and so on) with no posts in it, so there is nothing to analyse. Run Apify’s Instagram Scraper (apify/instagram-scraper) with the result type “Posts”, then upload that dataset.',
+      );
+    }
     throw new UserFacingError(
       'No posts were found in that file. Export the Instagram Scraper run that collected posts (it needs the id, timestamp, likesCount and commentsCount columns).',
     );
