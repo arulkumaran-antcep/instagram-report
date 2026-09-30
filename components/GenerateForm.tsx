@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { AtSign, CalendarRange, Globe, Sparkles } from 'lucide-react';
+import { AtSign, CalendarRange, Globe, FileBarChart } from 'lucide-react';
 import { PERIODS, TIMEZONES, customRangeBounds, customRangeProblem, parseHandle, type PeriodKey } from '@/lib/handle';
 import { Button, Notice, buttonClass, cx } from '@/components/ui';
 import { Select } from '@/components/Select';
@@ -50,7 +50,7 @@ export function GenerateForm({ compact = false }: { compact?: boolean }) {
 
   const submitButton = (className: string) => (
     <Button type="submit" size="lg" loading={loading} className={className}>
-      {!loading && <Sparkles className="h-18 w-18" aria-hidden />}
+      {!loading && <FileBarChart className="h-18 w-18" aria-hidden />}
       {loading ? 'Starting…' : 'Generate report'}
     </Button>
   );

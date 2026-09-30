@@ -4,12 +4,12 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { BookOpen, History, LayoutDashboard, Menu, Settings, Sparkles, X } from 'lucide-react';
+import { BookOpen, History, LayoutDashboard, Menu, Settings, FilePlus2, X } from 'lucide-react';
 import { cx } from '@/components/ui';
 
 const ITEMS = [
   { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/generate', label: 'Generate Report', icon: Sparkles },
+  { href: '/generate', label: 'Generate Report', icon: FilePlus2 },
   { href: '/reports', label: 'Report History', icon: History },
   { href: '/settings', label: 'Settings', icon: Settings },
   { href: '/help', label: 'How to use', icon: BookOpen },

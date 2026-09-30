@@ -2,7 +2,7 @@
 
 import { useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { CalendarRange, FileSpreadsheet, Globe, Sparkles, UploadCloud, X } from 'lucide-react';
+import { CalendarRange, FileSpreadsheet, Globe, FileBarChart, UploadCloud, X } from 'lucide-react';
 import { TIMEZONES, parseHandle } from '@/lib/handle';
 import { fmtDate } from '@/lib/format';
 import { Button, Notice, cx } from '@/components/ui';
@@ -308,7 +308,7 @@ export function UploadForm() {
               </label>
 
               <Button type="button" size="lg" loading={loading} onClick={() => void submit()} className="mt-20 h-52 w-full sm:w-auto sm:px-28">
-                {!loading && <Sparkles className="h-18 w-18" aria-hidden />}
+                {!loading && <FileBarChart className="h-18 w-18" aria-hidden />}
                 {loading ? 'Starting…' : 'Analyse and build report'}
               </Button>
             </>

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowRight, CheckCircle2, Clock3, FileText, Sparkles, Wallet } from 'lucide-react';
+import { ArrowRight, CheckCircle2, Clock3, FileText, FilePlus2, Wallet } from 'lucide-react';
 import { requireMember } from '@/lib/auth';
 import { dashboardStats, listReports } from '@/lib/reports';
 import { fmtCompact, fmtRate, fmtUsd, timeAgo } from '@/lib/format';
@@ -71,7 +71,7 @@ export default async function DashboardPage() {
         <Card className="p-16 md:p-28">
           <div className="flex items-start gap-14">
             <span className="flex h-40 w-40 shrink-0 items-center justify-center rounded-lg bg-brand-gradient">
-              <Sparkles className="h-20 w-20 text-white" aria-hidden />
+              <FilePlus2 className="h-20 w-20 text-white" aria-hidden />
             </span>
             <div>
               <h2 className="text-headline-sm text-ink">Run a new audit</h2>
