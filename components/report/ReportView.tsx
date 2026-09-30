@@ -7,6 +7,7 @@ import { Avatar, Badge, buttonClass, cx } from '@/components/ui';
 import { DayBars, HourChart, MonthlyCharts, ShareChart } from '@/components/charts';
 import { RegenerateButton } from '@/components/report/RegenerateButton';
 import { DeleteReportButton } from '@/components/DeleteReportButton';
+import { SectionNav } from '@/components/report/SectionNav';
 
 function Bullets({ items }: { items: NarrativeBullet[] }) {
   return (
@@ -180,20 +181,10 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
       )}
 
       {/* In-page nav */}
-      <nav aria-label="Report sections" className="no-scrollbar sticky top-72 z-10 -mx-16 overflow-x-auto border-y border-line bg-canvas/95 px-16 backdrop-blur md:-mx-32 md:px-32">
-        <ul className="flex gap-4 py-8">
-          {nav.map(([id, label]) => (
-            <li key={id}>
-              <a href={`#${id}`} className="flex h-32 items-center whitespace-nowrap rounded-md px-10 text-body-sm text-ink-subtle hover:bg-surface-high hover:text-ink">
-                {label}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
+      <SectionNav items={nav as [string, string][]} />
 
       <div className="grid grid-cols-1 gap-24 md:gap-32 xl:grid-cols-2">
-        <div className="card p-20 md:p-28 xl:col-span-2" id="snapshot">
+        <div className="card scroll-mt-[136px] p-20 md:p-28 xl:col-span-2" id="snapshot">
           <Section id="snapshot-h" title="Account snapshot">
             <div className="mb-20 grid grid-cols-2 gap-10 md:gap-12 lg:grid-cols-4">
               {[
@@ -213,7 +204,7 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
           </Section>
         </div>
 
-        <div className="card p-20 md:p-28 xl:col-span-2" id="buckets">
+        <div className="card scroll-mt-[136px] p-20 md:p-28 xl:col-span-2" id="buckets">
           <Section id="buckets-h" title="Content buckets" description="What the account posts, and which themes earn their share of engagement.">
             <div className="grid grid-cols-1 gap-32 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <ShareChart rows={stats.buckets} />
@@ -241,7 +232,7 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
           </Section>
         </div>
 
-        <div className="card p-20 md:p-28" id="formats">
+        <div className="card scroll-mt-[136px] p-20 md:p-28" id="formats">
           <Section id="formats-h" title="Formats">
             <div className="rounded-xl border border-line">
               <DataTable
@@ -253,13 +244,13 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
           </Section>
         </div>
 
-        <div className="card p-20 md:p-28" id="opportunities">
+        <div className="card scroll-mt-[136px] p-20 md:p-28" id="opportunities">
           <Section id="opportunities-h" title="Gaps & opportunities">
             <Bullets items={section('opportunities')?.bullets ?? []} />
           </Section>
         </div>
 
-        <div className="card p-20 md:p-28 xl:col-span-2" id="trajectory">
+        <div className="card scroll-mt-[136px] p-20 md:p-28 xl:col-span-2" id="trajectory">
           <Section
             id="trajectory-h"
             title="Trajectory"
@@ -272,7 +263,7 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
           </Section>
         </div>
 
-        <div className="card p-20 md:p-28 xl:col-span-2" id="timing">
+        <div className="card scroll-mt-[136px] p-20 md:p-28 xl:col-span-2" id="timing">
           <Section id="timing-h" title={`Timing (${tz})`}>
             <div className="grid grid-cols-1 gap-32 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
               <HourChart hours={stats.hours} minSample={stats.timing.minSample} timezone={tz} />
@@ -284,7 +275,7 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
           </Section>
         </div>
 
-        <div className="card p-20 md:p-28" id="captions">
+        <div className="card scroll-mt-[136px] p-20 md:p-28" id="captions">
           <Section id="captions-h" title="Captions & hashtags">
             <Bullets items={[...(section('captions')?.bullets ?? []), ...(section('hashtags')?.bullets ?? [])]} />
             <div className="mt-20 rounded-xl border border-line">
@@ -297,7 +288,7 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
           </Section>
         </div>
 
-        <div className="card p-20 md:p-28" id="collabs">
+        <div className="card scroll-mt-[136px] p-20 md:p-28" id="collabs">
           <Section id="collabs-h" title="Collabs & audio">
             <Bullets items={section('collabs')?.bullets ?? []} />
             {stats.collabs.collaborators.length > 0 && (
@@ -312,7 +303,7 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
           </Section>
         </div>
 
-        <div className="card p-20 md:p-28 xl:col-span-2" id="top-posts">
+        <div className="card scroll-mt-[136px] p-20 md:p-28 xl:col-span-2" id="top-posts">
           <Section id="top-posts-h" title="Top 10 posts" description="Ranked by engagement (likes + comments). Open a post to see it on Instagram.">
             <div className="rounded-xl border border-line">
               <DataTable
@@ -340,7 +331,7 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
           </Section>
         </div>
 
-        <div className="card p-20 md:p-28 xl:col-span-2" id="recommendations">
+        <div className="card scroll-mt-[136px] p-20 md:p-28 xl:col-span-2" id="recommendations">
           <Section id="recommendations-h" title="Recommendations" description="In priority order. Each one cites the numbers behind it.">
             <ol className="grid grid-cols-1 gap-16 lg:grid-cols-2">
               {narrative.recommendations.map((r, i) => (
