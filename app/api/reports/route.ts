@@ -6,7 +6,7 @@ import { runReport } from '@/lib/pipeline';
 import { adminDb } from '@/lib/supabase/admin';
 import type { Post, Profile } from '@/lib/report-types';
 
-export const maxDuration = 800;
+export const maxDuration = 300; // Hobby maximum. On Pro with Fluid Compute raise to 800 so 12-month reports can finish.
 
 const MAX_ACTIVE_PER_USER = 2;
 const MAX_ACTIVE_TOTAL = 4;
