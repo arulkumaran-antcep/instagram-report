@@ -33,7 +33,7 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-24 md:space-y-32">
-      <section className="card relative overflow-hidden p-20 md:p-32">
+      <section className="card relative overflow-clip p-16 md:p-32">
         <div
           aria-hidden
           className="pointer-events-none absolute right-[-120px] top-[-160px] h-[360px] w-[520px] rounded-full bg-[radial-gradient(closest-side,rgba(236,72,153,0.12),transparent)]"
@@ -51,31 +51,31 @@ export default async function DashboardPage() {
             Report history <ArrowRight className="h-16 w-16" aria-hidden />
           </ButtonLink>
         </div>
-        <div className="relative mt-24 grid gap-12 sm:grid-cols-2 xl:grid-cols-4">
+        <div className="relative mt-20 grid grid-cols-2 gap-10 md:mt-24 md:gap-12 xl:grid-cols-4">
           {tiles.map(({ icon: Icon, label, value, note }) => (
-            <div key={label} className="rounded-xl border border-line bg-surface-low p-16">
+            <div key={label} className="min-w-0 rounded-xl border border-line bg-surface-low p-12 md:p-16">
               <div className="flex items-center gap-10">
-                <span className="flex h-32 w-32 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <span className="hidden h-32 w-32 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary sm:flex">
                   <Icon className="h-16 w-16" aria-hidden />
                 </span>
                 <span className="label">{label}</span>
               </div>
-              <p className="tabular mt-12 text-headline-lg text-ink">{value}</p>
+              <p className="tabular mt-8 text-headline-md text-ink md:mt-12 md:text-headline-lg">{value}</p>
               <p className="mt-2 text-body-sm text-ink-subtle">{note}</p>
             </div>
           ))}
         </div>
       </section>
 
-      <div className="grid gap-24 xl:grid-cols-[minmax(0,1fr)_420px] md:gap-32">
-        <Card className="p-20 md:p-28">
+      <div className="grid grid-cols-1 gap-24 xl:grid-cols-[minmax(0,1fr)_420px] md:gap-32">
+        <Card className="p-16 md:p-28">
           <div className="flex items-start gap-14">
             <span className="flex h-40 w-40 shrink-0 items-center justify-center rounded-lg bg-brand-gradient">
               <Sparkles className="h-20 w-20 text-white" aria-hidden />
             </span>
             <div>
               <h2 className="text-headline-sm text-ink">Run a new audit</h2>
-              <p className="mt-2 text-body-md text-ink-subtle">12 months of posts, content buckets, timing and recommendations, as a PDF plus an Excel workbook.</p>
+              <p className="mt-2 text-body-md text-ink-subtle">Content buckets, timing, trajectory and recommendations for any time span, as a PDF plus an Excel workbook.</p>
             </div>
           </div>
           <div className="mt-20">

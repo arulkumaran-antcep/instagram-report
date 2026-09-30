@@ -5,6 +5,7 @@ import { adminDb } from '@/lib/supabase/admin';
 import { Card, CardHeader, PageHeader } from '@/components/ui';
 import { PasswordForm } from '@/components/PasswordForm';
 import { ProfileForm } from '@/components/settings/ProfileForm';
+import { ApiKeys } from '@/components/settings/ApiKeys';
 import { TeamManager, type TeamMember } from '@/components/settings/TeamManager';
 
 export const metadata: Metadata = { title: 'Settings' };
@@ -17,7 +18,7 @@ export default async function SettingsPage() {
   return (
     <div>
       <PageHeader eyebrow="Preferences & access" title="Settings" description="Your profile, password and the team who can use InstaReport." />
-      <div className="grid gap-24 xl:grid-cols-2 md:gap-32">
+      <div className="grid grid-cols-1 gap-24 xl:grid-cols-2 md:gap-32">
         <Card>
           <CardHeader title="Your profile" description="Your name appears on reports you generate." />
           <div className="p-20 md:p-24">
@@ -42,14 +43,25 @@ export default async function SettingsPage() {
           <CardHeader
             title="Team"
             description={member.role === 'admin' ? 'Add teammates, change roles, reset passwords or remove access.' : 'People who can use InstaReport. Ask an admin to add someone.'}
-            action={<Users className="h-20 w-20 text-ink-subtle" aria-hidden />}
+            action={<Users className="hidden h-20 w-20 text-ink-subtle sm:block" aria-hidden />}
           />
           <TeamManager members={team} currentUserId={member.userId} isAdmin={member.role === 'admin'} />
         </Card>
 
+        {member.role === 'admin' && (
+          <Card className="xl:col-span-2">
+            <CardHeader
+              title="API keys & credit"
+              description="Update the Apify and Anthropic keys here without touching the server, and see how much credit is left. Keys are encrypted and never shown again."
+              action={<KeyRound className="hidden h-20 w-20 text-ink-subtle sm:block" aria-hidden />}
+            />
+            <ApiKeys />
+          </Card>
+        )}
+
         <Card className="xl:col-span-2">
-          <CardHeader title="Data & compliance" description="How InstaReport handles data. Share this with anyone who asks." action={<ShieldCheck className="h-20 w-20 text-ink-subtle" aria-hidden />} />
-          <ul className="grid gap-16 p-20 md:grid-cols-2 md:p-24">
+          <CardHeader title="Data & compliance" description="How InstaReport handles data. Share this with anyone who asks." action={<ShieldCheck className="hidden h-20 w-20 text-ink-subtle sm:block" aria-hidden />} />
+          <ul className="grid grid-cols-1 gap-16 p-20 md:grid-cols-2 md:p-24">
             {[
               ['Public data only', 'Posts and profile details anyone can see without an account. Collection runs without logging in to Instagram, so no company account is involved. Private accounts are refused.'],
               ['No third-party data kept', 'Commenters’ names and comments are discarded before anything is stored, and the raw scrape is deleted from Apify right after collection.'],

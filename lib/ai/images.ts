@@ -1,17 +1,19 @@
 import 'server-only';
 import sharp from 'sharp';
 import type { Post } from '@/lib/report-types';
+import { isInstagramImageUrl } from '@/lib/instagram/normalize';
 
 // Post images are fetched into memory, shrunk to a small thumbnail (cheap for
 // the model, still legible for text-on-image posts) and never written to disk
 // or storage.
 const WIDTH = 384;
-const CONCURRENCY = 8;
+const CONCURRENCY = 16;
 const TIMEOUT_MS = 15_000;
 
 const thumbnail = async (url: string): Promise<string | null> => {
+  if (!isInstagramImageUrl(url)) return null;
   try {
-    const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+    const res = await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS), redirect: 'error' });
     if (!res.ok) return null;
     const input = Buffer.from(await res.arrayBuffer());
     const out = await sharp(input)

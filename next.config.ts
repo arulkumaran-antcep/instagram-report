@@ -11,6 +11,8 @@ const nextConfig: NextConfig = {
   // These load native binaries or read their own data files at runtime,
   // which breaks when bundled.
   serverExternalPackages: ['@react-pdf/renderer', 'sharp', 'exceljs', 'apify-client'],
+  // proxy.ts buffers request bodies; the default 10 MB would truncate uploads up to 15 MB.
+  experimental: { proxyClientMaxBodySize: '20mb' },
   poweredByHeader: false,
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];

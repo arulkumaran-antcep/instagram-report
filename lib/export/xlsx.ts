@@ -356,7 +356,7 @@ export const buildWorkbook = async (args: {
   const ab = sheet('About');
   table(ab, 1, 'About this workbook', [{ header: 'Item' }, { header: 'Detail' }], [
     ['Account', `@${profile.username}${profile.fullName ? ` (${profile.fullName})` : ''}`],
-    ['Window', `${fmtDate(stats.window.start)} – ${fmtDate(stats.window.end)} (${stats.window.months} months, ${stats.overview.posts} posts)`],
+    ['Window', `${fmtDate(stats.window.start)} – ${fmtDate(stats.window.end)} (${stats.window.days} days, ${stats.overview.posts} posts${stats.window.truncated ? ', capped at the collection limit' : ''})`],
     ['Timezone', tz],
     ['Generated', `${fmtDate(new Date().toISOString())} by ${generatedBy}`],
     ['Engagement', 'Likes + comments per post. Posts with hidden like counts are excluded from averages.'],

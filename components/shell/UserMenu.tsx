@@ -29,9 +29,10 @@ export function UserMenu({ name, email, role }: { name: string; email: string; r
         onClick={() => setOpen((v) => !v)}
         aria-expanded={open}
         aria-haspopup="menu"
+        aria-label={`Account menu for ${name}`}
         className="flex items-center gap-10 rounded-lg py-4 pl-4 pr-8 hover:bg-surface-high"
       >
-        <span className="hidden text-right sm:block">
+        <span className="hidden text-right sm:block" aria-hidden>
           <span className="block text-body-sm font-semibold text-ink">{name}</span>
           <span className="block text-label-sm capitalize text-ink-subtle">{role}</span>
         </span>

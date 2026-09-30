@@ -1,11 +1,14 @@
 import 'server-only';
 import { adminDb, REPORTS_BUCKET } from '@/lib/supabase/admin';
 import { STALE_AFTER_MINUTES, fileName } from '@/lib/pipeline';
-import type { ReportRow, ReportStatus } from '@/lib/report-types';
+import type { Post, Profile, ReportRow, ReportStatus } from '@/lib/report-types';
 import type { Member } from '@/lib/auth';
 
+// Everything except source_data, which can be large and is only read by the pipeline.
+const DETAIL_COLUMNS = `${'id, handle, status, stage, progress, timezone, window_months, window_start, window_end, source, error_message, cost, created_by, created_by_name, created_at, updated_at, completed_at, profile, stats, narrative, pdf_path, xlsx_path'}`;
+
 const LIST_COLUMNS =
-  'id, handle, status, stage, progress, timezone, window_months, error_message, cost, created_by, created_by_name, created_at, updated_at, completed_at, profile';
+  'id, handle, status, stage, progress, timezone, window_months, window_start, window_end, source, error_message, cost, created_by, created_by_name, created_at, updated_at, completed_at, profile';
 
 export type ReportListItem = Omit<ReportRow, 'stats' | 'narrative' | 'pdf_path' | 'xlsx_path'> & {
   engagementRate: number | null;
@@ -62,16 +65,23 @@ export const listReports = async ({
 export const getReport = async (id: string): Promise<ReportRow | null> => {
   if (!/^[0-9a-f-]{36}$/i.test(id)) return null;
   await expireStaleJobs();
-  const { data } = await adminDb().from('reports').select('*').eq('id', id).maybeSingle();
+  const { data } = await adminDb().from('reports').select(DETAIL_COLUMNS).eq('id', id).maybeSingle();
   return (data as ReportRow) ?? null;
 };
 
-export const findReusable = async (handle: string) => {
+export type WindowSpec = { months: number; start: string | null; end: string | null };
+
+// Same account and same time span, generated in the last 24 hours (or still running).
+export const findReusable = async (handle: string, window: WindowSpec) => {
   const since = new Date(Date.now() - 24 * 3_600_000).toISOString();
-  const { data } = await adminDb()
+  let query = adminDb()
     .from('reports')
     .select('id, status, created_at')
     .eq('handle', handle)
+    .eq('window_months', window.months)
+    .eq('source', 'scrape');
+  query = window.start ? query.eq('window_start', window.start).eq('window_end', window.end) : query.is('window_start', null);
+  const { data } = await query
     .or(`status.in.(queued,processing),and(status.eq.completed,created_at.gte."${since}")`)
     .order('created_at', { ascending: false })
     .limit(1);
@@ -85,10 +95,44 @@ export const activeJobCount = async (userId?: string) => {
   return count ?? 0;
 };
 
-export const createReport = async (handle: string, timezone: string, member: Member) => {
+export const createReport = async (handle: string, timezone: string, window: WindowSpec, member: Member) => {
   const { data, error } = await adminDb()
     .from('reports')
-    .insert({ handle, timezone, window_months: 12, created_by: member.userId, created_by_name: member.fullName })
+    .insert({
+      handle,
+      timezone,
+      window_months: window.months,
+      window_start: window.start,
+      window_end: window.end,
+      created_by: member.userId,
+      created_by_name: member.fullName,
+    })
+    .select('id')
+    .single();
+  if (error) throw error;
+  return data.id as string;
+};
+
+export const createUploadReport = async (
+  handle: string,
+  timezone: string,
+  window: WindowSpec,
+  member: Member,
+  sourceData: { profile: Profile; posts: Post[] },
+) => {
+  const { data, error } = await adminDb()
+    .from('reports')
+    .insert({
+      handle,
+      timezone,
+      window_months: window.months,
+      window_start: window.start,
+      window_end: window.end,
+      created_by: member.userId,
+      created_by_name: member.fullName,
+      source: 'upload',
+      source_data: sourceData,
+    })
     .select('id')
     .single();
   if (error) throw error;

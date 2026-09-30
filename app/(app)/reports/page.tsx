@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Eye, FileSearch, FileSpreadsheet, FileText, Plus, Search } from 'lucide-react';
 import { requireMember } from '@/lib/auth';
 import { listReports } from '@/lib/reports';
-import { fmtCompact, fmtDateTime, fmtInt, fmtRate } from '@/lib/format';
+import { fmtCompact, fmtDateTime, fmtInt, fmtRate, requestedPeriod } from '@/lib/format';
 import type { ReportStatus } from '@/lib/report-types';
 import { Avatar, ButtonLink, EmptyState, PageHeader, cx } from '@/components/ui';
 import { StatusBadge } from '@/components/StatusBadge';
@@ -64,7 +64,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
               className="h-40 w-full rounded-lg border border-line-strong bg-canvas-deep pl-36 pr-12 text-body-md text-ink placeholder:text-ink-faint focus:border-primary focus:outline-none"
             />
           </form>
-          <nav aria-label="Filter by status" className="flex gap-4 overflow-x-auto rounded-lg bg-canvas-deep p-4">
+          <nav aria-label="Filter by status" className="no-scrollbar flex gap-4 overflow-x-auto rounded-lg bg-canvas-deep p-4">
             {FILTERS.map((f) => (
               <Link
                 key={f.key}
@@ -119,7 +119,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
                             <Avatar name={r.handle} size={40} />
                             <span className="min-w-0">
                               <span className="block truncate text-body-md font-semibold text-ink">@{r.handle}</span>
-                              <span className="block truncate text-body-sm text-ink-subtle">{r.profile?.fullName || r.profile?.category || '—'}</span>
+                              <span className="block truncate text-body-sm text-ink-subtle">{requestedPeriod(r)}</span>
                             </span>
                           </Link>
                         </td>
@@ -167,8 +167,7 @@ export default async function ReportsPage({ searchParams }: PageProps<'/reports'
                     <span className="min-w-0 flex-1">
                       <span className="block truncate text-body-md font-semibold text-ink">@{r.handle}</span>
                       <span className="block text-body-sm text-ink-subtle">
-                        {r.profile ? `${fmtCompact(r.profile.followers)} followers · ` : ''}
-                        {fmtDateTime(r.created_at)}
+                        {requestedPeriod(r)} · {fmtDateTime(r.created_at)}
                       </span>
                     </span>
                     <StatusBadge status={r.status} />

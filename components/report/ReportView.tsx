@@ -2,7 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { ArrowLeft, BadgeCheck, Briefcase, Clock, ExternalLink, FileSpreadsheet, FileText, Lightbulb, ShieldCheck } from 'lucide-react';
 import type { NarrativeBullet, ReportRow } from '@/lib/report-types';
-import { fmtCompact, fmtDate, fmtDateTime, fmtIndex, fmtInt, fmtPct, fmtRate, fmtUsd } from '@/lib/format';
+import { fmtCompact, fmtDate, fmtDateTime, fmtIndex, fmtInt, fmtPct, fmtRate, fmtUsd, periodLabel } from '@/lib/format';
 import { Avatar, Badge, buttonClass, cx } from '@/components/ui';
 import { DayBars, HourChart, MonthlyCharts, ShareChart } from '@/components/charts';
 import { RegenerateButton } from '@/components/report/RegenerateButton';
@@ -98,7 +98,12 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
           <RegenerateButton
             handle={report.handle}
             timezone={report.timezone}
-            confirm={`Generate a fresh report for @${report.handle}? It collects the latest data and costs about ${fmtUsd(cost?.totalUsd ?? 2.5)} in API usage.`}
+            span={report}
+            confirm={
+              report.source === 'upload'
+                ? `Run the analysis again on the same uploaded data for @${report.handle}? It uses AI again and costs about ${fmtUsd(cost?.claudeUsd ?? 0.6)}.`
+                : `Generate a fresh report for @${report.handle}? It collects the latest data and costs about ${fmtUsd(cost?.totalUsd ?? 2.5)} in API usage.`
+            }
           />
           <a href={`/api/reports/${report.id}/download?format=xlsx`} className={buttonClass('secondary', 'md')}>
             <FileSpreadsheet className="h-16 w-16" aria-hidden /> Excel
@@ -111,9 +116,9 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
       </div>
 
       {/* Profile header */}
-      <section className="card relative overflow-hidden p-20 md:p-28">
+      <section className="card relative overflow-clip p-20 md:p-28">
         <div aria-hidden className="pointer-events-none absolute right-[-160px] top-[-200px] h-[400px] w-[560px] rounded-full bg-[radial-gradient(closest-side,rgba(160,120,255,0.16),transparent)]" />
-        <div className="relative grid gap-24 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
+        <div className="relative grid grid-cols-1 gap-24 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
           <div className="flex min-w-0 gap-16 md:gap-20">
             <Avatar name={profile.username} size={64} />
             <div className="min-w-0">
@@ -137,7 +142,9 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
                   View on Instagram <ExternalLink className="h-12 w-12" aria-hidden />
                 </a>
                 <span>
-                  Window {fmtDate(stats.window.start)} – {fmtDate(stats.window.end)} · {tz}
+                  {periodLabel(stats.window)}
+                  {!stats.window.custom && ` (${fmtDate(stats.window.start)} – ${fmtDate(stats.window.end)})`} · {tz}
+                  {stats.window.truncated && ' · most recent posts up to the collection limit'}
                 </span>
               </div>
             </div>
@@ -174,7 +181,7 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
       )}
 
       {/* In-page nav */}
-      <nav aria-label="Report sections" className="sticky top-72 z-10 -mx-16 overflow-x-auto border-y border-line bg-canvas/95 px-16 backdrop-blur md:-mx-32 md:px-32">
+      <nav aria-label="Report sections" className="no-scrollbar sticky top-72 z-10 -mx-16 overflow-x-auto border-y border-line bg-canvas/95 px-16 backdrop-blur md:-mx-32 md:px-32">
         <ul className="flex gap-4 py-8">
           {nav.map(([id, label]) => (
             <li key={id}>
@@ -186,19 +193,19 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
         </ul>
       </nav>
 
-      <div className="grid gap-24 md:gap-32 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-24 md:gap-32 xl:grid-cols-2">
         <div className="card p-20 md:p-28 xl:col-span-2" id="snapshot">
           <Section id="snapshot-h" title="Account snapshot">
-            <div className="mb-20 grid gap-12 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mb-20 grid grid-cols-2 gap-10 md:gap-12 lg:grid-cols-4">
               {[
                 { k: 'Avg engagement / post', v: fmtCompact(o.avgEngagement), n: `median ${fmtCompact(o.medianEngagement)}` },
                 { k: 'Comments per 100 likes', v: o.commentsPer100LikesMedian.toFixed(1), n: 'median post' },
                 { k: 'Posts without caption', v: fmtPct(o.captionlessShare), n: `${fmtInt(Math.round(o.captionlessShare * o.posts))} of ${fmtInt(o.posts)}` },
                 { k: 'Hidden like counts', v: fmtInt(o.hiddenLikePosts), n: o.hiddenLikePosts ? 'excluded from averages' : 'rates are accurate' },
               ].map((x) => (
-                <div key={x.k} className="rounded-xl border border-line bg-surface-low p-16">
+                <div key={x.k} className="min-w-0 rounded-xl border border-line bg-surface-low p-12 md:p-16">
                   <p className="label">{x.k}</p>
-                  <p className="tabular mt-8 text-headline-md text-ink">{x.v}</p>
+                  <p className="tabular mt-8 text-headline-sm text-ink md:text-headline-md">{x.v}</p>
                   <p className="mt-2 text-body-sm text-ink-subtle">{x.n}</p>
                 </div>
               ))}
@@ -209,7 +216,7 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
 
         <div className="card p-20 md:p-28 xl:col-span-2" id="buckets">
           <Section id="buckets-h" title="Content buckets" description="What the account posts, and which themes earn their share of engagement.">
-            <div className="grid gap-32 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+            <div className="grid grid-cols-1 gap-32 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
               <ShareChart rows={stats.buckets} />
               <Bullets items={section('buckets')?.bullets ?? []} />
             </div>
@@ -268,7 +275,7 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
 
         <div className="card p-20 md:p-28 xl:col-span-2" id="timing">
           <Section id="timing-h" title={`Timing (${tz})`}>
-            <div className="grid gap-32 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+            <div className="grid grid-cols-1 gap-32 xl:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
               <HourChart hours={stats.hours} minSample={stats.timing.minSample} timezone={tz} />
               <DayBars days={stats.days} />
             </div>
@@ -336,7 +343,7 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
 
         <div className="card p-20 md:p-28 xl:col-span-2" id="recommendations">
           <Section id="recommendations-h" title="Recommendations" description="In priority order. Each one cites the numbers behind it.">
-            <ol className="grid gap-16 lg:grid-cols-2">
+            <ol className="grid grid-cols-1 gap-16 lg:grid-cols-2">
               {narrative.recommendations.map((r, i) => (
                 <li key={i} className="flex gap-14 rounded-xl border border-line bg-surface-low p-16 md:p-20">
                   <span className="tabular flex h-32 w-32 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-body-sm font-bold text-primary">

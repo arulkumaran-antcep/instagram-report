@@ -37,6 +37,12 @@
   .tabular {
     font-variant-numeric: tabular-nums;
   }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
   .skeleton {
     @apply animate-pulse rounded-md bg-surface-high;
   }

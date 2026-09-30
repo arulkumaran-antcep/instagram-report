@@ -47,3 +47,7 @@ temp/
 
 # PDFs (local)
 public/uploads/
+
+# Local tooling and build caches
+.claude/
+*.tsbuildinfo

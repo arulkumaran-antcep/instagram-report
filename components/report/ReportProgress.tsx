@@ -5,13 +5,16 @@ import { useRouter } from 'next/navigation';
 import { AlertCircle, Check, Loader2 } from 'lucide-react';
 import { STAGES, type ReportStatus, type Stage } from '@/lib/report-types';
 import { cx } from '@/components/ui';
+import { requestedPeriod } from '@/lib/format';
 import { RegenerateButton } from '@/components/report/RegenerateButton';
 
 type Status = { status: ReportStatus; stage: Stage; progress: number; error: string | null };
 
 const STEPS = STAGES.filter((s) => s.key !== 'queued' && s.key !== 'done');
 
-export function ReportProgress({ id, handle, timezone, initial }: { id: string; handle: string; timezone: string; initial: Status }) {
+type Span = { window_months: number; window_start: string | null; window_end: string | null };
+
+export function ReportProgress({ id, handle, timezone, span, initial }: { id: string; handle: string; timezone: string; span: Span; initial: Status }) {
   const router = useRouter();
   const [state, setState] = useState<Status>(initial);
   const [elapsed, setElapsed] = useState(0);
@@ -45,7 +48,7 @@ export function ReportProgress({ id, handle, timezone, initial }: { id: string; 
             <h2 className="text-headline-sm text-ink">The report for @{handle} couldn’t be generated</h2>
             <p className="mt-6 text-body-md text-ink-muted">{state.error ?? 'Something went wrong.'}</p>
             <div className="mt-20">
-              <RegenerateButton handle={handle} timezone={timezone} label="Try again" />
+              <RegenerateButton handle={handle} timezone={timezone} span={span} label="Try again" />
             </div>
           </div>
         </div>
@@ -60,8 +63,9 @@ export function ReportProgress({ id, handle, timezone, initial }: { id: string; 
     <div className="card mx-auto max-w-720 p-24 md:p-32" aria-live="polite">
       <p className="label text-primary">Generating report</p>
       <h2 className="mt-8 text-headline-md text-ink">@{handle}</h2>
+      <p className="mt-2 text-body-sm font-medium text-ink-muted">{requestedPeriod(span)}</p>
       <p className="mt-4 text-body-md text-ink-subtle">
-        This usually takes 4–8 minutes. You can leave this page; the report keeps generating and will appear in Report History.
+        A 12-month report usually takes 4–8 minutes; shorter spans are quicker. You can leave this page; the report keeps generating and will appear in Report History.
       </p>
 
       <div className="mt-24 h-8 w-full overflow-hidden rounded-full bg-surface-high" role="progressbar" aria-valuenow={state.progress} aria-valuemin={0} aria-valuemax={100}>

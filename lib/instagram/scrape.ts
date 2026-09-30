@@ -1,7 +1,9 @@
 import 'server-only';
 import { ApifyClient } from 'apify-client';
 import { env } from '@/lib/env';
-import type { Format, Post, Profile } from '@/lib/report-types';
+import type { Post, Profile } from '@/lib/report-types';
+import { normalizePosts } from '@/lib/instagram/normalize';
+export { normalizePosts };
 
 import { UserFacingError } from '@/lib/errors';
 export { UserFacingError };
@@ -10,17 +12,26 @@ const MAX_POSTS = 1200;
 const RUN_TIMEOUT_SECONDS = 900;
 
 let client: ApifyClient | null = null;
-const apify = () => (client ??= new ApifyClient({ token: env.apifyToken }));
+let clientToken = '';
+// Rebuilt whenever the token is changed in Settings.
+const apify = () => {
+  const token = env.apifyToken;
+  if (!client || token !== clientToken) {
+    client = new ApifyClient({ token });
+    clientToken = token;
+  }
+  return client;
+};
 
 const explainApifyError = (error: unknown): never => {
   const message = error instanceof Error ? error.message : String(error);
   if (/usage|limit|credit|insufficient|payment/i.test(message)) {
     throw new UserFacingError(
-      'The Apify account has run out of monthly credit. An admin needs to top it up in the Apify console, then try again.',
+      'The Apify account has run out of monthly credit. An admin needs to raise the plan or limit in the Apify console (Settings → API keys & credit shows usage), then try again.',
     );
   }
   if (/token|unauthori[sz]ed|401/i.test(message)) {
-    throw new UserFacingError('The Apify API token is invalid. An admin needs to update APIFY_API_TOKEN.');
+    throw new UserFacingError('The Apify API token is invalid. An admin needs to update it in Settings → API keys & credit.');
   }
   throw new UserFacingError(`Instagram data collection failed: ${message}`);
 };
@@ -90,98 +101,32 @@ export const fetchProfile = async (username: string): Promise<{ profile: Profile
   };
 };
 
-const toFormat = (item: Record<string, any>): Format => {
-  if (item.type === 'Sidecar') return 'Carousel';
-  if (item.type === 'Video' || item.productType === 'clips') return 'Reel/Video';
-  return 'Image';
-};
-
-const usernames = (list: unknown, owner: string): string[] =>
-  Array.isArray(list)
-    ? list
-        .map((u) => (typeof u?.username === 'string' ? u.username.toLowerCase() : null))
-        .filter((u): u is string => !!u && u !== owner)
-    : [];
-
+// Instagram lists newest first, so the scraper walks back from today until
+// windowStart. Posts after windowEnd (custom past ranges) are dropped here.
 export const fetchPosts = async (
   username: string,
   windowStart: Date,
-  months: number,
-): Promise<{ posts: Post[]; usd: number }> => {
+  windowEnd: Date,
+  relativeMonths?: number,
+): Promise<{ posts: Post[]; usd: number; truncated: boolean }> => {
   const { items, usd } = await runActor({
     directUrls: [`https://www.instagram.com/${username}/`],
     resultsType: 'posts',
     resultsLimit: MAX_POSTS,
-    onlyPostsNewerThan: `${months} months`,
+    onlyPostsNewerThan: relativeMonths ? `${relativeMonths} months` : windowStart.toISOString().slice(0, 10),
     searchType: 'user',
   });
 
   if (items.length === 1 && items[0].error) assertUsable(items[0], username);
 
-  const posts = normalizePosts(items, username, windowStart);
+  const posts = normalizePosts(items, username, windowStart, windowEnd);
+  const truncated = items.filter((i) => !i.error).length >= MAX_POSTS;
   if (posts.length === 0) {
-    throw new UserFacingError(`@${username} has no public posts in the last ${months} months, so there is nothing to analyse.`);
+    throw new UserFacingError(
+      truncated
+        ? `@${username} posts so often that the ${MAX_POSTS.toLocaleString('en-US')}-post limit was reached before the chosen dates. Choose a more recent range.`
+        : `@${username} has no public posts in the chosen time span, so there is nothing to analyse.`,
+    );
   }
-  return { posts, usd };
-};
-
-// Scraped values end up as clickable links, so only accept Instagram URLs.
-const safePostUrl = (item: Record<string, any>) => {
-  if (typeof item.url === 'string' && /^https:\/\/www\.instagram\.com\/(p|reel|tv)\/[\w-]+\/?$/.test(item.url)) return item.url;
-  const code = typeof item.shortCode === 'string' && /^[\w-]+$/.test(item.shortCode) ? item.shortCode : null;
-  return code ? `https://www.instagram.com/p/${code}/` : 'https://www.instagram.com/';
-};
-
-// Maps raw scraper items to our Post shape, keeping only the audited
-// account's own public data.
-export const normalizePosts = (items: Record<string, any>[], username: string, windowStart: Date): Post[] => {
-  const seen = new Set<string>();
-  const posts: Post[] = [];
-
-  for (const item of items) {
-    if (item.error || !item.id || !item.timestamp) continue;
-    if (seen.has(item.id)) continue;
-    const time = new Date(item.timestamp);
-    if (Number.isNaN(time.getTime()) || time < windowStart) continue; // e.g. old pinned posts
-    seen.add(item.id);
-
-    const format = toFormat(item);
-    const rawLikes = item.likesCount;
-    const likes = typeof rawLikes === 'number' && rawLikes >= 0 ? rawLikes : null;
-    const comments = Math.max(0, Number(item.commentsCount ?? 0));
-    const music = item.musicInfo;
-
-    // Deliberately not copied: latestComments / firstComment (other people's
-    // data) and media download URLs.
-    posts.push({
-      idx: 0,
-      id: String(item.id),
-      url: safePostUrl(item),
-      timestamp: time.toISOString(),
-      format,
-      likes,
-      comments,
-      views: format === 'Reel/Video' ? Number(item.videoPlayCount ?? item.videoViewCount ?? 0) || null : null,
-      engagement: (likes ?? 0) + comments,
-      caption: typeof item.caption === 'string' ? item.caption : '',
-      hashtags: Array.isArray(item.hashtags) ? item.hashtags.map((h: string) => h.toLowerCase()) : [],
-      collaborators: [...new Set([...usernames(item.coauthorProducers, username), ...usernames(item.taggedUsers, username)])],
-      isSponsored: Boolean(item.paidPartnership || item.isSponsored),
-      location: item.locationName || null,
-      audio:
-        format === 'Reel/Video' && music
-          ? {
-              original: Boolean(music.uses_original_audio),
-              artist: music.uses_original_audio ? null : music.artist_name || null,
-              song: music.uses_original_audio ? null : music.song_name || null,
-            }
-          : null,
-      isPinned: Boolean(item.isPinned),
-      imageUrl: item.displayUrl || null,
-    });
-  }
-
-  posts.sort((a, b) => b.timestamp.localeCompare(a.timestamp));
-  posts.forEach((p, i) => (p.idx = i));
-  return posts;
+  return { posts, usd, truncated };
 };

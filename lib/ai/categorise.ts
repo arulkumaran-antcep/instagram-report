@@ -55,7 +55,7 @@ const discoverBuckets = async (username: string, posts: Post[], thumbs: Map<numb
           {
             type: 'text',
             text: `You are a social media analyst preparing a content audit of the public Instagram account @${username}.
-Below are ${sample.length} of its posts from the last 12 months (the account posted ${posts.length} in total). Each has its format, caption and the first image.
+Below are ${sample.length} of its posts from the analysis window (the account posted ${posts.length} in that window). Each has its format, caption and the first image.
 
 Define the content categories ("buckets") this account posts in, so that every post can later be assigned to exactly one.
 - 4 to 8 buckets, based on what the content actually is (theme and style), e.g. "Motivational & Philosophical Quotes", "Bollywood Film Memes", "Product Tutorials".

@@ -7,7 +7,16 @@ export const MODEL = 'claude-sonnet-5-5';
 const PRICE_PER_M = { input: 2, output: 10 }; // USD, Claude Sonnet 5.5
 
 let client: Anthropic | null = null;
-export const claude = () => (client ??= new Anthropic({ apiKey: env.anthropicKey, maxRetries: 4 }));
+let clientKey = '';
+// Rebuilt whenever the key is changed in Settings.
+export const claude = () => {
+  const key = env.anthropicKey;
+  if (!client || key !== clientKey) {
+    client = new Anthropic({ apiKey: key, maxRetries: 4 });
+    clientKey = key;
+  }
+  return client;
+};
 
 export class Usage {
   input = 0;
@@ -24,7 +33,7 @@ export class Usage {
 export const explainClaudeError = (error: unknown): never => {
   if (error instanceof UserFacingError) throw error;
   if (error instanceof Anthropic.AuthenticationError) {
-    throw new UserFacingError('The Anthropic API key is invalid. An admin needs to update ANTHROPIC_API_KEY.');
+    throw new UserFacingError('The Anthropic API key is invalid. An admin needs to update the key in Settings → API keys & credit.');
   }
   if (error instanceof Anthropic.PermissionDeniedError) {
     throw new UserFacingError('The Anthropic account does not have access to the model. Check the account in the Anthropic console.');
@@ -33,7 +42,7 @@ export const explainClaudeError = (error: unknown): never => {
     throw new UserFacingError('The AI service is busy right now. Please try again in a few minutes.');
   }
   if (error instanceof Anthropic.APIError && /credit|billing|balance/i.test(error.message)) {
-    throw new UserFacingError('The Anthropic account has run out of credit. An admin needs to add credit in the Anthropic console.');
+    throw new UserFacingError('The Anthropic account has run out of credit. An admin needs to add credit in the Anthropic console (Settings → API keys & credit shows the budget).');
   }
   const message = error instanceof Error ? error.message : String(error);
   throw new UserFacingError(`The AI analysis step failed: ${message}`);

@@ -4,6 +4,12 @@ import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Copy, KeyRound, Trash2, UserPlus } from 'lucide-react';
 import { Avatar, Badge, Button, Field, Notice, cx, inputClass } from '@/components/ui';
+import { Select } from '@/components/Select';
+
+const ROLE_OPTIONS: { value: 'admin' | 'member'; label: string; hint: string }[] = [
+  { value: 'member', label: 'Member', hint: 'Generate, view and download reports' },
+  { value: 'admin', label: 'Admin', hint: 'Also manage the team' },
+];
 import { fmtDate } from '@/lib/format';
 
 export type TeamMember = { userId: string; email: string; fullName: string; role: 'admin' | 'member'; createdAt: string };
@@ -95,16 +101,17 @@ export function TeamManager({ members, currentUserId, isAdmin }: { members: Team
               </div>
               {isAdmin && !self ? (
                 <div className="flex items-center gap-4">
-                  <select
-                    aria-label={`Role for ${m.email}`}
-                    value={m.role}
-                    disabled={busy !== null}
-                    onChange={(e) => void call(`role-${m.userId}`, `/api/team/${m.userId}`, 'PATCH', { role: e.target.value })}
-                    className="h-32 rounded-md border border-line-strong bg-surface px-8 text-body-sm text-ink"
-                  >
-                    <option value="member">Member</option>
-                    <option value="admin">Admin</option>
-                  </select>
+                  <div className="w-120">
+                    <Select
+                      label={`Role for ${m.email}`}
+                      size="sm"
+                      value={m.role}
+                      disabled={busy !== null}
+                      options={ROLE_OPTIONS}
+                      menuWidth={260}
+                      onChange={(role) => void call(`role-${m.userId}`, `/api/team/${m.userId}`, 'PATCH', { role })}
+                    />
+                  </div>
                   <button
                     type="button"
                     title="Reset password"
@@ -146,19 +153,17 @@ export function TeamManager({ members, currentUserId, isAdmin }: { members: Team
 
       {isAdmin &&
         (adding ? (
-          <form onSubmit={add} className="mt-16 grid gap-16 rounded-xl border border-line bg-surface-low p-16 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_160px_auto] md:items-end">
+          <form onSubmit={add} className="mt-16 grid grid-cols-1 gap-16 rounded-xl border border-line bg-surface-low p-16 md:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_160px_auto] md:items-end">
             <Field label="Full name">
               <input className={inputClass} value={form.fullName} onChange={(e) => setForm({ ...form, fullName: e.target.value })} required maxLength={80} />
             </Field>
             <Field label="Work email">
               <input className={inputClass} type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
             </Field>
-            <Field label="Role">
-              <select className={inputClass} value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value as 'admin' | 'member' })}>
-                <option value="member">Member</option>
-                <option value="admin">Admin</option>
-              </select>
-            </Field>
+            <div>
+              <span className="mb-6 block text-body-sm font-medium text-ink-muted">Role</span>
+              <Select label="Role" value={form.role} options={ROLE_OPTIONS} menuWidth={260} onChange={(role) => setForm({ ...form, role })} />
+            </div>
             <div className="flex gap-8">
               <Button type="submit" loading={busy === 'add'} disabled={!form.fullName.trim() || !form.email.trim()}>
                 Add

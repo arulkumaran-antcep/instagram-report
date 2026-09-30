@@ -3,7 +3,7 @@ import { Logo } from '@/components/shell/Nav';
 
 export function AuthFrame({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
-    <div className="relative flex min-h-screen items-center justify-center overflow-hidden px-16 py-48">
+    <div className="relative flex min-h-screen items-center justify-center overflow-clip px-16 py-48">
       <div
         aria-hidden
         className="pointer-events-none absolute left-1/2 top-[-240px] h-[560px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(160,120,255,0.22),transparent)]"

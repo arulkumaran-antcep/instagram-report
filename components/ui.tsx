@@ -78,7 +78,7 @@ export function CardHeader({ title, description, action }: { title: string; desc
     <div className="flex flex-wrap items-start justify-between gap-12 border-b border-line px-20 py-16 md:px-24">
       <div className="min-w-0">
         <h2 className="text-headline-sm text-ink">{title}</h2>
-        {description && <p className="mt-2 text-body-sm text-ink-subtle">{description}</p>}
+        {description && <p className="mt-6 max-w-720 text-body-sm text-ink-subtle">{description}</p>}
       </div>
       {action}
     </div>

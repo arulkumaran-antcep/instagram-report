@@ -40,19 +40,23 @@ export const unsupportedNumbers = (text: string, allowed: Allowed): string[] => 
     .replace(/\b\d{1,2}:\d{2}\b/g, ' ') // clock times
     .replace(/\b(19|20)\d{2}\b/g, ' '); // years
   const bad: string[] = [];
-  for (const m of cleaned.matchAll(/(\d{1,3}(?:,\d{3})+|\d+(?:\.\d+)?)\s*(K|M|%)?(?![\w.])/g)) {
+  // A figure may be followed by a full stop (end of sentence) but not by
+  // more digits or letters, so "25K." is checked and "5Kg" is not.
+  for (const m of cleaned.matchAll(/(\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)\s*(K|M|%)?(?!\w|\.\d)/g)) {
     const token = m[0].trim();
     const base = Number(m[1].replace(/,/g, ''));
     const unit = m[2];
+    const decimals = m[1].includes('.') ? m[1].split('.')[1].length : 0;
     if (unit === '%') {
-      if (!allowed.percents.some((p) => close(base, p, 0.02, 0.6))) bad.push(token);
+      // Half a unit of the last written digit (55% may stand for 54.5-55.5).
+      const tolerance = 0.55 * 10 ** -decimals;
+      if (!allowed.percents.some((p) => Math.abs(base - p) <= tolerance)) bad.push(token);
       continue;
     }
     const value = unit === 'K' ? base * 1_000 : unit === 'M' ? base * 1_000_000 : base;
     if (value < 50) continue;
-    const decimals = m[1].includes('.') ? m[1].split('.')[1].length : 0;
-    const tolerance = unit ? (decimals ? 0.012 : 0.05) : 0.012;
-    if (!allowed.values.some((v) => close(value, v, tolerance, 1))) bad.push(token);
+    const tolerance = unit ? 0.55 * 10 ** -decimals * (unit === 'K' ? 1_000 : 1_000_000) : 0.012;
+    if (!allowed.values.some((v) => (unit ? Math.abs(value - v) <= tolerance : close(value, v, tolerance, 1)))) bad.push(token);
   }
   return bad;
 };

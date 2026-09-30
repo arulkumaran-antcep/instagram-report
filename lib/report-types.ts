@@ -10,7 +10,7 @@ export type Stage = 'queued' | 'profile' | 'posts' | 'images' | 'categorise' | '
 export const STAGES: { key: Stage; label: string; progress: number }[] = [
   { key: 'queued', label: 'Queued', progress: 2 },
   { key: 'profile', label: 'Checking the profile', progress: 5 },
-  { key: 'posts', label: 'Collecting 12 months of posts', progress: 12 },
+  { key: 'posts', label: 'Collecting posts in the time span', progress: 12 },
   { key: 'images', label: 'Preparing post images', progress: 40 },
   { key: 'categorise', label: 'Categorising content', progress: 50 },
   { key: 'analyse', label: 'Calculating metrics', progress: 72 },
@@ -74,7 +74,15 @@ export interface ShareRow extends GroupStat {
 }
 
 export interface ReportStats {
-  window: { start: string; end: string; months: number; timezone: string; days: number };
+  window: {
+    start: string;
+    end: string;
+    months: number;
+    timezone: string;
+    days: number;
+    custom: boolean; // a chosen date range rather than "last N months"
+    truncated: boolean; // hit the post cap, so the window starts at the oldest collected post
+  };
   overview: {
     posts: number;
     avgEngagement: number;
@@ -186,6 +194,9 @@ export interface ReportRow {
   progress: number;
   timezone: string;
   window_months: number;
+  window_start: string | null;
+  window_end: string | null;
+  source: 'scrape' | 'upload';
   profile: Profile | null;
   stats: ReportStats | null;
   narrative: Narrative | null;

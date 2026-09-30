@@ -9,7 +9,9 @@ import { computeStats } from '@/lib/analysis/stats';
 import { buildPdf } from '@/lib/export/pdf';
 import { buildWorkbook } from '@/lib/export/xlsx';
 import { UserFacingError } from '@/lib/errors';
-import { STAGES, type ReportCost, type Stage } from '@/lib/report-types';
+import { zonedRange } from '@/lib/dates';
+import { loadSecrets } from '@/lib/secrets';
+import { STAGES, type Post, type Profile, type ReportCost, type Stage } from '@/lib/report-types';
 
 const HEARTBEAT_MS = 60_000;
 export const STALE_AFTER_MINUTES = 10;
@@ -20,7 +22,8 @@ export const fileName = (handle: string, ext: 'pdf' | 'xlsx') => `${handle}-inst
 
 export const runReport = async (reportId: string) => {
   const db = adminDb();
-  const { data: row, error } = await db.from('reports').select('handle, timezone, window_months, created_by_name').eq('id', reportId).single();
+  await loadSecrets(true);
+  const { data: row, error } = await db.from('reports').select('handle, timezone, window_months, window_start, window_end, created_by_name, source, source_data').eq('id', reportId).single();
   if (error || !row) {
     console.error('[pipeline] report not found', reportId, error);
     return;
@@ -58,20 +61,32 @@ export const runReport = async (reportId: string) => {
 
   try {
     await stage('profile');
-    const { profile, usd: profileUsd } = await fetchProfile(handle);
+    const uploaded = row.source === 'upload' ? (row.source_data as { profile: Profile; posts: Post[] } | null) : null;
+    if (row.source === 'upload' && !uploaded) throw new UserFacingError('The uploaded data for this report is missing. Please upload the file again.');
+    const { profile, usd: profileUsd } = uploaded ? { profile: uploaded.profile, usd: 0 } : await fetchProfile(handle);
     apifyUsd += profileUsd;
-    await log(step, true, t0, { followers: profile.followers });
+    await log(step, true, t0, { followers: profile.followers, source: row.source });
 
     step = 'posts';
     t0 = Date.now();
     await stage('posts');
-    const windowEnd = new Date();
-    const windowStart = new Date(windowEnd);
-    windowStart.setUTCMonth(windowStart.getUTCMonth() - row.window_months);
-    const { posts, usd: postsUsd } = await fetchPosts(handle, windowStart, row.window_months);
+    const custom = Boolean(row.window_start && row.window_end);
+    let windowStart: Date;
+    let windowEnd: Date;
+    if (custom) {
+      ({ start: windowStart, end: windowEnd } = zonedRange(row.window_start, row.window_end, row.timezone));
+    } else {
+      windowEnd = new Date();
+      windowStart = new Date(windowEnd);
+      windowStart.setUTCMonth(windowStart.getUTCMonth() - row.window_months);
+    }
+    const { posts, usd: postsUsd, truncated } = uploaded
+      ? { posts: uploaded.posts, usd: 0, truncated: false }
+      : await fetchPosts(handle, windowStart, windowEnd, custom ? undefined : row.window_months);
+    if (truncated) windowStart = new Date(posts[posts.length - 1].timestamp);
     apifyUsd += postsUsd;
     postsCollected = posts.length;
-    await log(step, true, t0, { posts: posts.length, usd: postsUsd });
+    await log(step, true, t0, { posts: posts.length, usd: postsUsd, truncated, oldest: posts[posts.length - 1].timestamp });
 
     step = 'images';
     t0 = Date.now();
@@ -95,7 +110,7 @@ export const runReport = async (reportId: string) => {
     step = 'analyse';
     t0 = Date.now();
     await stage('analyse');
-    const stats = computeStats({ profile, posts, buckets, timezone: row.timezone, windowStart, windowEnd, months: row.window_months });
+    const stats = computeStats({ profile, posts, buckets, timezone: row.timezone, windowStart, windowEnd, months: row.window_months, custom, truncated });
     await log(step, true, t0);
 
     step = 'write';
@@ -109,7 +124,7 @@ export const runReport = async (reportId: string) => {
     await stage('render');
     const generatedBy = row.created_by_name || 'the InstaReport team';
     const [pdf, xlsx] = await Promise.all([
-      buildPdf({ profile, stats, narrative, generatedBy }),
+      buildPdf({ profile, stats, narrative }),
       buildWorkbook({ profile, posts, buckets, stats, generatedBy }),
     ]);
     const pdfPath = `${reportId}/${fileName(handle, 'pdf')}`;

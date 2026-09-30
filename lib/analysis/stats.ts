@@ -117,9 +117,11 @@ export interface StatsInput {
   windowStart: Date;
   windowEnd: Date;
   months: number;
+  custom?: boolean;
+  truncated?: boolean;
 }
 
-export const computeStats = ({ profile, posts, buckets, timezone, windowStart, windowEnd, months }: StatsInput): ReportStats => {
+export const computeStats = ({ profile, posts, buckets, timezone, windowStart, windowEnd, months, custom = false, truncated = false }: StatsInput): ReportStats => {
   const local = makeLocalizer(timezone);
   const localOf = new Map(posts.map((p) => [p.id, local(p.timestamp)]));
   const L = (p: Post) => localOf.get(p.id)!;
@@ -250,6 +252,8 @@ export const computeStats = ({ profile, posts, buckets, timezone, windowStart, w
       months,
       timezone,
       days: Math.round(days),
+      custom,
+      truncated,
     },
     overview: {
       posts: N,

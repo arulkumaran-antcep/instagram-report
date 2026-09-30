@@ -162,34 +162,39 @@ const MonthChart = ({ months }: { months: ReportStats['months'] }) => {
   );
 };
 
-const ReportPdf = ({ profile, stats, narrative, generatedBy }: { profile: Profile; stats: ReportStats; narrative: Narrative; generatedBy: string }) => {
+const ReportPdf = ({ profile, stats, narrative }: { profile: Profile; stats: ReportStats; narrative: Narrative }) => {
   const o = stats.overview;
   const tz = stats.window.timezone;
   const maxIndex = Math.max(1.5, ...stats.buckets.map((b) => b.index));
   const section = (key: string) => narrative.sections.find((x) => x.key === key);
+  // A heading is always kept on the same page as the first item under it.
+  const Titled = ({ title, first, children }: { title: string; first: React.ReactNode; children?: React.ReactNode }) => (
+    <View>
+      <View wrap={false}>
+        <Text style={s.h2}>{title}</Text>
+        {first}
+      </View>
+      {children}
+    </View>
+  );
   const Section = ({ k }: { k: string }) => {
     const sec = section(k);
-    if (!sec) return null;
+    if (!sec || sec.bullets.length === 0) return null;
+    const [head, ...rest] = sec.bullets;
     return (
-      <View>
-        <Text style={s.h2} minPresenceAhead={60}>
-          {sec.title}
-        </Text>
-        {sec.bullets.map((b, i) => (
+      <Titled title={sec.title} first={<Bullet lead={head.lead} text={head.text} />}>
+        {rest.map((b, i) => (
           <Bullet key={i} lead={b.lead} text={b.text} />
         ))}
-      </View>
+      </Titled>
     );
   };
 
   return (
-    <Document title={`@${profile.username} — Instagram Content Analysis`} author="InstaReport" subject="Instagram content audit" creator="InstaReport">
+    <Document title={`@${profile.username} — Instagram Content Analysis`} subject="Instagram content audit">
       <Page size="A4" style={s.page}>
 
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-          <Text style={s.eyebrow}>Instagram content analysis</Text>
-          <Text style={[s.small, { fontSize: 7.5 }]}>Generated {fmtDate(new Date().toISOString())}</Text>
-        </View>
+        <Text style={s.eyebrow}>Instagram content analysis</Text>
         <Text style={s.title}>@{profile.username}</Text>
         <Text style={s.subtitle}>
           {[profile.fullName, profile.category, `${fmtInt(profile.followers)} followers`, `${fmtInt(profile.totalPosts)} posts in total`]
@@ -200,7 +205,7 @@ const ReportPdf = ({ profile, stats, narrative, generatedBy }: { profile: Profil
         <View style={s.meta}>
           <Text>
             <Text style={s.lead}>Window: </Text>
-            {fmtDate(stats.window.start)} – {fmtDate(stats.window.end)} ({fmtInt(o.posts)} posts).{'  '}
+            {fmtDate(stats.window.start)} – {fmtDate(stats.window.end)} ({fmtInt(o.posts)} posts{stats.window.truncated ? ', the most recent posts up to the collection limit' : ''}).{'  '}
             <Text style={s.lead}>Timezone for timing analysis: </Text>
             {tz}.{'  '}
             <Text style={s.lead}>Content categories: </Text>
@@ -211,7 +216,7 @@ const ReportPdf = ({ profile, stats, narrative, generatedBy }: { profile: Profil
         <View style={s.kpis}>
           {[
             { label: 'Followers', value: fmtCompact(profile.followers), note: `Follows ${fmtInt(profile.following)}` },
-            { label: 'Posts / week', value: o.postsPerWeek.toFixed(1), note: `${fmtInt(o.posts)} in ${stats.window.months} months` },
+            { label: 'Posts / week', value: o.postsPerWeek.toFixed(1), note: `${fmtInt(o.posts)} posts in ${fmtInt(stats.window.days)} days` },
             { label: 'Engagement rate', value: fmtRate(o.engagementRate), note: 'Benchmark 1–3%' },
             { label: 'Avg / median', value: `${fmtCompact(o.avgEngagement)} / ${fmtCompact(o.medianEngagement)}`, note: 'engagement per post' },
             { label: 'Comments', value: o.commentsPer100LikesMedian.toFixed(1), note: 'per 100 likes (median)' },
@@ -228,9 +233,24 @@ const ReportPdf = ({ profile, stats, narrative, generatedBy }: { profile: Profil
 
         <Section k="snapshot" />
 
-        <Text style={s.h2} minPresenceAhead={80}>
-          Content buckets
-        </Text>
+        <View wrap={false}>
+        <Text style={s.h2}>Formats</Text>
+        <Table
+          cols={[
+            { label: 'Format', width: '22%' },
+            { label: 'Posts', width: '12%', align: 'right' },
+            { label: '% posts', width: '13%', align: 'right' },
+            { label: '% engagement', width: '17%', align: 'right' },
+            { label: 'Index', width: '10%', align: 'right' },
+            { label: 'Average', width: '13%', align: 'right' },
+            { label: 'Median', width: '13%', align: 'right' },
+          ]}
+          rows={stats.formats.map((f) => [f.format, fmtInt(f.posts), fmtPct(f.pctPosts), fmtPct(f.pctEngagement), fmtIndex(f.index), fmtInt(f.avg), fmtInt(f.median)])}
+        />
+        </View>
+
+        <View wrap={false}>
+        <Text style={s.h2}>Content buckets</Text>
         <Table
           cols={[
             { label: 'Bucket', width: '36%' },
@@ -251,35 +271,18 @@ const ReportPdf = ({ profile, stats, narrative, generatedBy }: { profile: Profil
             fmtInt(b.median),
           ])}
         />
+        </View>
         <View style={{ marginTop: 8 }}>
           {section('buckets')?.bullets.map((b, i) => <Bullet key={i} lead={b.lead} text={b.text} />)}
         </View>
 
-        <View wrap={false}>
-        <Text style={s.h2}>Formats</Text>
-        <Table
-          cols={[
-            { label: 'Format', width: '22%' },
-            { label: 'Posts', width: '12%', align: 'right' },
-            { label: '% posts', width: '13%', align: 'right' },
-            { label: '% engagement', width: '17%', align: 'right' },
-            { label: 'Index', width: '10%', align: 'right' },
-            { label: 'Average', width: '13%', align: 'right' },
-            { label: 'Median', width: '13%', align: 'right' },
-          ]}
-          rows={stats.formats.map((f) => [f.format, fmtInt(f.posts), fmtPct(f.pctPosts), fmtPct(f.pctEngagement), fmtIndex(f.index), fmtInt(f.avg), fmtInt(f.median)])}
-        />
-        </View>
-
         <Section k="opportunities" />
 
-        <Text style={s.h2} minPresenceAhead={140}>
-          {section('trajectory')?.title ?? 'Trajectory'}
-        </Text>
-        <MonthChart months={stats.months} />
-        <View style={{ marginTop: 8 }}>
-          {section('trajectory')?.bullets.map((b, i) => <Bullet key={i} lead={b.lead} text={b.text} />)}
-        </View>
+        <Titled title={section('trajectory')?.title ?? 'Trajectory'} first={<MonthChart months={stats.months} />}>
+          <View style={{ marginTop: 8 }}>
+            {section('trajectory')?.bullets.map((b, i) => <Bullet key={i} lead={b.lead} text={b.text} />)}
+          </View>
+        </Titled>
 
         <Section k="hashtags" />
 
@@ -323,19 +326,23 @@ const ReportPdf = ({ profile, stats, narrative, generatedBy }: { profile: Profil
         />
         </View>
 
-        <View>
-          <Text style={s.h2} minPresenceAhead={90}>
-            Recommendations
-          </Text>
-          {narrative.recommendations.map((r, i) => (
+        {(() => {
+          const row = (r: { title: string; detail: string }, i: number) => (
             <View key={i} style={s.recRow} wrap={false}>
               <Text style={s.recNum}>{i + 1}</Text>
               <Text style={s.bulletText}>
                 <Text style={s.lead}>{r.title.replace(/\.$/, '')}.</Text> {r.detail}
               </Text>
             </View>
-          ))}
-        </View>
+          );
+          const [head, ...rest] = narrative.recommendations;
+          if (!head) return null;
+          return (
+            <Titled title="Recommendations" first={row(head, 0)}>
+              {rest.map((r, i) => row(r, i + 1))}
+            </Titled>
+          );
+        })()}
 
         <View wrap={false} style={{ marginTop: 16, paddingVertical: 10, paddingHorizontal: 12, borderWidth: 0.75, borderColor: C.line, borderRadius: 6 }}>
           <Text style={[s.lead, { fontSize: 9, marginBottom: 4 }]}>Methodology & limitations</Text>
@@ -352,10 +359,9 @@ const ReportPdf = ({ profile, stats, narrative, generatedBy }: { profile: Profil
               <Text style={[s.bulletText, { fontSize: 7.6, color: C.muted }]}>{t}</Text>
             </View>
           ))}
-          <Text style={[s.small, { marginTop: 4 }]}>Prepared by {generatedBy} with InstaReport. Internal use only.</Text>
         </View>
         <Text style={s.footerLeft} fixed>
-          @{profile.username} · Instagram Content Analysis · Internal use only
+          @{profile.username} · Instagram Content Analysis
         </Text>
         <Text style={s.footerRight} fixed render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
       </Page>
@@ -363,7 +369,7 @@ const ReportPdf = ({ profile, stats, narrative, generatedBy }: { profile: Profil
   );
 };
 
-export const buildPdf = async (args: { profile: Profile; stats: ReportStats; narrative: Narrative; generatedBy: string }) => {
+export const buildPdf = async (args: { profile: Profile; stats: ReportStats; narrative: Narrative }) => {
   registerFonts();
   return renderToBuffer(<ReportPdf {...args} />);
 };

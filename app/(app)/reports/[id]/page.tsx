@@ -22,6 +22,7 @@ export default async function ReportPage({ params }: PageProps<'/reports/[id]'>)
         id={report.id}
         handle={report.handle}
         timezone={report.timezone}
+        span={report}
         initial={{ status: report.status, stage: report.stage, progress: report.progress, error: report.error_message }}
       />
     );

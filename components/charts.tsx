@@ -7,11 +7,18 @@ import { cx } from '@/components/ui';
 // CVD separation dE 15.4, normal-vision dE 20.5, contrast >= 3:1.
 export const SERIES = { a: '#9b72fb', b: '#ec4899' };
 
-function Tip({ children }: { children: ReactNode }) {
+// display:none until hover/focus so hidden tooltips never widen the page;
+// edge bars open inward so the tooltip stays on screen.
+function Tip({ children, align = 'center' }: { children: ReactNode; align?: 'start' | 'center' | 'end' }) {
   return (
     <span
       role="tooltip"
-      className="pointer-events-none invisible absolute bottom-[calc(100%+8px)] left-1/2 z-10 w-max max-w-240 -translate-x-1/2 rounded-lg border border-line-strong bg-surface-highest px-10 py-8 text-left text-body-sm text-ink opacity-0 shadow-glow transition-opacity group-hover:visible group-hover:opacity-100 group-focus-visible:visible group-focus-visible:opacity-100"
+      className={cx(
+        'pointer-events-none absolute bottom-[calc(100%+8px)] z-10 hidden w-max max-w-240 rounded-lg border border-line-strong bg-surface-highest px-10 py-8 text-left text-body-sm text-ink shadow-glow group-hover:block group-focus-visible:block',
+        align === 'center' && 'left-1/2 -translate-x-1/2',
+        align === 'start' && 'left-0',
+        align === 'end' && 'right-0',
+      )}
     >
       {children}
     </span>
@@ -110,7 +117,7 @@ function Columns({
         <span aria-hidden className="tabular absolute -top-18 left-0 text-label-sm text-ink-faint">
           {fmtCompact(max)}
         </span>
-        {data.map((d) => (
+        {data.map((d, i) => (
           <div key={d.key} tabIndex={0} className="group relative flex h-full min-w-0 flex-1 items-end outline-none">
             <div
               className={cx('w-full rounded-t-[4px] transition-opacity group-hover:opacity-80', d.muted && 'border border-b-0 border-ink-faint')}
@@ -120,7 +127,7 @@ function Columns({
                 backgroundImage: d.muted ? HATCH : undefined,
               }}
             />
-            <Tip>{d.tip}</Tip>
+            <Tip align={i < data.length * 0.25 ? 'start' : i >= data.length * 0.75 ? 'end' : 'center'}>{d.tip}</Tip>
           </div>
         ))}
       </div>
@@ -149,7 +156,7 @@ export function MonthlyCharts({ months }: { months: ReportStats['months'] }) {
   );
   const tick = (m: string) => fmtMonth(m).replace(/ (\d{2})(\d{2})$/, " '$2");
   return (
-    <div className="grid gap-32 xl:grid-cols-2">
+    <div className="grid grid-cols-1 gap-32 xl:grid-cols-2">
       <figure>
         <figcaption className="mb-24 text-body-sm font-semibold text-ink">Median engagement per post, by month</figcaption>
         <Columns

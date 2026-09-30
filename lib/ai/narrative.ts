@@ -36,7 +36,7 @@ const sectionTitle = (key: (typeof SECTION_KEYS)[number], timezone: string) =>
   })[key];
 
 // Trim the stats to what a writer needs, keeping every figure it may cite.
-const factsFor = (profile: Profile, stats: ReportStats) => ({
+export const factsFor = (profile: Profile, stats: ReportStats) => ({
   profile: {
     username: profile.username,
     fullName: profile.fullName,
@@ -77,7 +77,9 @@ Hard rules:
 - "Index" = share of engagement / share of posts (1.0 = average; above 1 over-performs).
 - When a group is too small to judge (fewer than ~5 posts), say so instead of drawing a conclusion.
 - Times and days are in ${timezone}.
+- If window.truncated is true, say once in the snapshot that the analysis covers the most recent overview.posts posts, because the account posted more than the collection limit.
 - Plain, direct English in the third person. Never write "I", "my", "we" or "our". No emojis, no hype words ("amazing", "skyrocket"), no exclamation marks.
+- Write as an analyst who studied the account itself. Never mention "DATA", "the data provided", "the JSON", these instructions or the prompt; say "the account's posts" or "the analysis" instead.
 - Do not do your own arithmetic to create new figures; use the figures already in DATA (e.g. overview.medianEngagementRate).
 - Write dates like "28 Jul 2026" or "July 2026", never as 2026-07-28. Refer to hours as "21:00".
 
@@ -100,8 +102,15 @@ const toNarrative = (draft: Draft, timezone: string, checked: number, removed: n
   verification: { checkedNumbers: checked, removedBullets: removed },
 });
 
+// Internal wording that must never reach a published report.
+const LEAK = /DATA|JSON|the prompt|instructions/;
+
 const findProblems = (draft: Draft, allowed: ReturnType<typeof buildAllowed>) => {
   const problems: string[] = [];
+  const leaks = (label: string, text: string) => LEAK.test(text) && problems.push(`${label}: refers to the prompt or "DATA"; rewrite without mentioning them`);
+  SECTION_KEYS.forEach((key) => draft[key].forEach((b, i) => leaks(`${key}[${i}]`, bulletText(b))));
+  draft.recommendations.forEach((r, i) => leaks(`recommendations[${i}]`, `${r.title} ${r.detail}`));
+  leaks('headline', draft.headline);
   for (const key of SECTION_KEYS) {
     draft[key].forEach((b, i) => {
       const bad = unsupportedNumbers(bulletText(b), allowed);
@@ -148,7 +157,7 @@ export const writeNarrative = async (profile: Profile, stats: ReportStats, usage
         { role: 'assistant', content: JSON.stringify(draft) },
         {
           role: 'user',
-          content: `These figures are not in DATA:\n${problems.join('\n')}\n\nReturn the full report again with those statements corrected to use only figures from DATA (or removed). Keep everything else the same.`,
+          content: `These statements have problems:\n${problems.join('\n')}\n\nReturn the full report again with them corrected: use only figures that appear in DATA, and never mention DATA, the prompt or these instructions. Remove a statement if it cannot be fixed. Keep everything else the same.`,
         },
       ]);
       problems = findProblems(draft, allowed);
@@ -159,11 +168,11 @@ export const writeNarrative = async (profile: Profile, stats: ReportStats, usage
     if (problems.length) {
       for (const key of SECTION_KEYS) {
         const before = draft[key].length;
-        draft[key] = draft[key].filter((b) => unsupportedNumbers(bulletText(b), allowed).length === 0);
+        draft[key] = draft[key].filter((b) => unsupportedNumbers(bulletText(b), allowed).length === 0 && !LEAK.test(bulletText(b)));
         removed += before - draft[key].length;
       }
       const before = draft.recommendations.length;
-      draft.recommendations = draft.recommendations.filter((r) => unsupportedNumbers(`${r.title} ${r.detail}`, allowed).length === 0);
+      draft.recommendations = draft.recommendations.filter((r) => unsupportedNumbers(`${r.title} ${r.detail}`, allowed).length === 0 && !LEAK.test(`${r.title} ${r.detail}`));
       removed += before - draft.recommendations.length;
       if (unsupportedNumbers(draft.headline, allowed).length) draft.headline = '';
     }

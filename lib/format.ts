@@ -46,6 +46,13 @@ export const fmtMonth = (yyyyMm: string) => {
 
 export const fmtHour = (h: number) => `${String(h).padStart(2, '0')}:00`;
 
+export const periodLabel = (w: { custom?: boolean; months: number; start: string; end: string }) =>
+  w.custom ? `${fmtDate(w.start)} – ${fmtDate(w.end)}` : `Last ${w.months} months`;
+
+// For list rows, where only the stored request is known.
+export const requestedPeriod = (r: { window_months: number; window_start: string | null; window_end: string | null }) =>
+  r.window_start && r.window_end ? `${fmtDate(r.window_start)} – ${fmtDate(r.window_end)}` : `Last ${r.window_months} months`;
+
 export const fmtUsd = (n: number | null | undefined) => (n == null ? '—' : `$${n.toFixed(2)}`);
 
 export const timeAgo = (iso: string) => {

@@ -1,4 +1,5 @@
 import 'server-only';
+import { secretOverride } from '@/lib/secrets';
 
 const required = (name: string): string => {
   const value = process.env[name];
@@ -20,12 +21,12 @@ export const env = {
     return required('SUPABASE_SERVICE_ROLE_KEY');
   },
   get apifyToken() {
-    return required('APIFY_API_TOKEN');
+    return secretOverride('apify_token') ?? required('APIFY_API_TOKEN');
   },
   get apifyActorId() {
     return process.env.APIFY_INSTAGRAM_SCRAPER_ACTOR_ID || 'apify/instagram-scraper';
   },
   get anthropicKey() {
-    return required('ANTHROPIC_API_KEY');
+    return secretOverride('anthropic_key') ?? required('ANTHROPIC_API_KEY');
   },
 };

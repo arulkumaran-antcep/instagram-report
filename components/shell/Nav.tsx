@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { BookOpen, History, LayoutDashboard, Menu, Settings, Sparkles, X } from 'lucide-react';
 import { cx } from '@/components/ui';
 
@@ -80,6 +81,12 @@ export function MobileNav() {
   const pathname = usePathname();
   useEffect(() => setOpen(false), [pathname]);
   useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setOpen(false);
+    document.addEventListener('keydown', onKey);
+    return () => document.removeEventListener('keydown', onKey);
+  }, [open]);
+  useEffect(() => {
     document.body.style.overflow = open ? 'hidden' : '';
     return () => {
       document.body.style.overflow = '';
@@ -97,7 +104,10 @@ export function MobileNav() {
       >
         <Menu className="h-20 w-20" />
       </button>
-      {open && (
+      {/* Portal: the sticky header's backdrop blur would otherwise become the
+          containing block for this fixed overlay and clip it to the header. */}
+      {open &&
+        createPortal(
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
           <button type="button" className="absolute inset-0 bg-canvas-deep/80" aria-label="Close menu" onClick={() => setOpen(false)} />
           <div className="relative flex h-full w-280 flex-col bg-surface-low px-20 py-20 shadow-glow">
@@ -114,8 +124,9 @@ export function MobileNav() {
             </div>
             <NavList onNavigate={() => setOpen(false)} />
           </div>
-        </div>
-      )}
+        </div>,
+          document.body,
+        )}
     </>
   );
 }
