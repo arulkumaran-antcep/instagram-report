@@ -3,9 +3,9 @@ import type { ReportStats } from '@/lib/report-types';
 import { fmtCompact, fmtHour, fmtIndex, fmtInt, fmtMonth, fmtPct } from '@/lib/format';
 import { cx } from '@/components/ui';
 
-// Series colours validated (dark surface #171f33): lightness band, chroma,
+// Series colours follow the theme (see globals.css); validated: lightness band, chroma,
 // CVD separation dE 15.4, normal-vision dE 20.5, contrast >= 3:1.
-export const SERIES = { a: '#9b72fb', b: '#ec4899' };
+export const SERIES = { a: 'rgb(var(--c-series-a))', b: 'rgb(var(--c-series-b))' };
 
 // display:none until hover/focus so hidden tooltips never widen the page;
 // edge bars open inward so the tooltip stays on screen.
@@ -42,7 +42,7 @@ function Legend({ items }: { items: { label: string; color?: string; hatched?: b
   );
 }
 
-const HATCH = 'repeating-linear-gradient(45deg, rgba(203,195,215,0.35) 0 2px, transparent 2px 5px)';
+const HATCH = 'repeating-linear-gradient(45deg, rgb(var(--c-ink-subtle) / 0.45) 0 2px, transparent 2px 5px)';
 
 // Share of posts vs share of engagement per bucket: the core "effort vs
 // result" comparison. Values sit in the table below; bars show the gap.

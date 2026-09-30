@@ -240,7 +240,7 @@ export function UploadForm() {
                       <input
                         type="date"
                         aria-label="From date"
-                        className={cx(input, '[color-scheme:dark]')}
+                        className={input}
                         min={summary.fileFrom}
                         max={end || summary.fileTo}
                         value={start}
@@ -255,7 +255,7 @@ export function UploadForm() {
                       <input
                         type="date"
                         aria-label="To date"
-                        className={cx(input, '[color-scheme:dark]')}
+                        className={input}
                         min={start || summary.fileFrom}
                         max={summary.fileTo}
                         value={end}
@@ -301,7 +301,7 @@ export function UploadForm() {
               </div>
 
               <label className="mt-16 flex cursor-pointer items-start gap-12 text-body-sm text-ink-muted">
-                <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-2 h-18 w-18 shrink-0 accent-[#a078ff]" />
+                <input type="checkbox" checked={confirmed} onChange={(e) => setConfirmed(e.target.checked)} className="mt-2 h-18 w-18 shrink-0 accent-primary" />
                 <span>
                   I confirm this data is from a public Instagram account and was collected in line with Instagram’s and Apify’s terms and the law. I understand it will be sent to Anthropic for analysis.
                 </span>

@@ -4,6 +4,7 @@ import { dashboardStats } from '@/lib/reports';
 import { fmtUsd } from '@/lib/format';
 import { Logo, MobileNav, Sidebar } from '@/components/shell/Nav';
 import { UserMenu } from '@/components/shell/UserMenu';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const member = await requireMember();
@@ -28,7 +29,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
               className="h-44 w-full rounded-xl border border-line bg-surface pl-44 pr-14 text-body-md text-ink placeholder:text-ink-faint focus:border-primary focus:outline-none"
             />
           </form>
-          <div className="ml-auto">
+          <div className="ml-auto flex items-center gap-4">
+            <ThemeToggle />
             <UserMenu name={member.fullName} email={member.email} role={member.role} />
           </div>
         </header>

@@ -1,18 +1,16 @@
 import { ShieldCheck } from 'lucide-react';
 import { Logo } from '@/components/shell/Nav';
+import { ThemeToggle } from '@/components/ThemeToggle';
 
 export function AuthFrame({ title, subtitle, children }: { title: string; subtitle: string; children: React.ReactNode }) {
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-clip px-16 py-48">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute left-1/2 top-[-240px] h-[560px] w-[900px] -translate-x-1/2 rounded-full bg-[radial-gradient(closest-side,rgba(160,120,255,0.22),transparent)]"
-      />
+      <ThemeToggle className="absolute right-16 top-16" />
       <div className="relative w-full max-w-420">
         <div className="mb-32 flex justify-center">
           <Logo />
         </div>
-        <div className="card p-24 shadow-glow md:p-32">
+        <div className="card p-24 md:p-32">
           <h1 className="text-headline-md text-ink">{title}</h1>
           <p className="mt-4 text-body-md text-ink-subtle">{subtitle}</p>
           <div className="mt-24">{children}</div>

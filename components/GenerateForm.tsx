@@ -9,7 +9,7 @@ import { Button, Notice, buttonClass, cx } from '@/components/ui';
 import { Select } from '@/components/Select';
 
 const dateInput =
-  'h-44 w-full rounded-lg border border-line-strong bg-canvas-deep px-12 text-body-md text-ink [color-scheme:dark] focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30';
+  'h-44 w-full rounded-lg border border-line-strong bg-canvas-deep px-12 text-body-md text-ink focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/30';
 
 export function GenerateForm({ compact = false }: { compact?: boolean }) {
   const router = useRouter();

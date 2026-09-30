@@ -34,10 +34,6 @@ export default async function DashboardPage() {
   return (
     <div className="space-y-24 md:space-y-32">
       <section className="card relative overflow-clip p-16 md:p-32">
-        <div
-          aria-hidden
-          className="pointer-events-none absolute right-[-120px] top-[-160px] h-[360px] w-[520px] rounded-full bg-[radial-gradient(closest-side,rgba(236,72,153,0.12),transparent)]"
-        />
         <div className="relative flex flex-wrap items-start justify-between gap-16">
           <div>
             <h1 className="text-headline-md text-ink md:text-headline-xl">

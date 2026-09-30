@@ -117,7 +117,6 @@ export function ReportView({ report, canDelete }: { report: ReportRow; canDelete
 
       {/* Profile header */}
       <section className="card relative overflow-clip p-20 md:p-28">
-        <div aria-hidden className="pointer-events-none absolute right-[-160px] top-[-200px] h-[400px] w-[560px] rounded-full bg-[radial-gradient(closest-side,rgba(160,120,255,0.16),transparent)]" />
         <div className="relative grid grid-cols-1 gap-24 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-center">
           <div className="flex min-w-0 gap-16 md:gap-20">
             <Avatar name={profile.username} size={64} />

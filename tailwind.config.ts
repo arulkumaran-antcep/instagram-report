@@ -2,6 +2,8 @@ import type { Config } from 'tailwindcss';
 
 // Tokens from the InstaReport design system (Stitch). Every size is in px so
 // layouts don't shift with the browser's root font size.
+// Colours are CSS variables (see globals.css) so light and dark themes share one set of class names.
+const c = (name: string) => `rgb(var(--c-${name}) / <alpha-value>)`;
 const px = (values: number[]) => Object.fromEntries(values.map((v) => [String(v), `${v}px`]));
 
 const config: Config = {
@@ -15,16 +17,16 @@ const config: Config = {
     },
     borderRadius: { none: '0px', sm: '2px', DEFAULT: '4px', md: '6px', lg: '8px', xl: '12px', '2xl': '16px', full: '9999px' },
     fontSize: {
-      'label-sm': ['11px', { lineHeight: '14px', letterSpacing: '0.05em', fontWeight: '500' }],
-      'label-md': ['12px', { lineHeight: '16px', letterSpacing: '0.05em', fontWeight: '500' }],
-      'body-sm': ['13px', { lineHeight: '18px' }],
-      'body-md': ['14px', { lineHeight: '20px' }],
-      'body-lg': ['16px', { lineHeight: '24px' }],
-      'headline-sm': ['18px', { lineHeight: '24px', fontWeight: '600' }],
-      'headline-md': ['24px', { lineHeight: '32px', fontWeight: '600' }],
-      'headline-lg': ['32px', { lineHeight: '40px', letterSpacing: '-0.01em', fontWeight: '600' }],
-      'headline-xl': ['40px', { lineHeight: '48px', letterSpacing: '-0.02em', fontWeight: '700' }],
-      'display': ['56px', { lineHeight: '64px', letterSpacing: '-0.02em', fontWeight: '700' }],
+      'label-sm': ['var(--fs-label-sm)', { lineHeight: '14px', letterSpacing: '0.05em', fontWeight: '500' }],
+      'label-md': ['var(--fs-label-md)', { lineHeight: '16px', letterSpacing: '0.05em', fontWeight: '500' }],
+      'body-sm': ['var(--fs-body-sm)', { lineHeight: 'var(--lh-body-sm)' }],
+      'body-md': ['var(--fs-body-md)', { lineHeight: 'var(--lh-body-md)' }],
+      'body-lg': ['var(--fs-body-lg)', { lineHeight: 'var(--lh-body-lg)' }],
+      'headline-sm': ['var(--fs-headline-sm)', { lineHeight: 'var(--lh-headline-sm)', fontWeight: '600' }],
+      'headline-md': ['var(--fs-headline-md)', { lineHeight: 'var(--lh-headline-md)', fontWeight: '600' }],
+      'headline-lg': ['var(--fs-headline-lg)', { lineHeight: 'var(--lh-headline-lg)', letterSpacing: '-0.01em', fontWeight: '600' }],
+      'headline-xl': ['var(--fs-headline-xl)', { lineHeight: 'var(--lh-headline-xl)', letterSpacing: '-0.02em', fontWeight: '700' }],
+      display: ['var(--fs-display)', { lineHeight: 'var(--lh-display)', letterSpacing: '-0.02em', fontWeight: '700' }],
     },
     extend: {
       fontFamily: { sans: ['var(--font-inter)', 'system-ui', 'sans-serif'] },
@@ -33,24 +35,24 @@ const config: Config = {
       width: px([16, 18, 20, 24, 32, 36, 40, 44, 48, 56, 64, 280]),
       height: px([16, 18, 20, 24, 32, 36, 40, 44, 48, 56, 64]),
       colors: {
-        canvas: '#0b1326',
-        'canvas-deep': '#060e20',
-        surface: { low: '#131b2e', DEFAULT: '#171f33', high: '#222a3d', highest: '#2d3449' },
-        ink: { DEFAULT: '#dae2fd', muted: '#cbc3d7', subtle: '#958ea0', faint: '#6b6679' },
-        line: { DEFAULT: 'rgba(255,255,255,0.08)', strong: '#494454' },
-        primary: { DEFAULT: '#d0bcff', strong: '#a078ff', deep: '#6d3bd7', on: '#23005c' },
-        accent: { DEFAULT: '#ffb0cd', strong: '#ec4899' },
-        info: '#adc6ff',
-        success: '#4ade80',
-        warning: '#fbbf24',
-        danger: '#ffb4ab',
+        canvas: c('canvas'),
+        'canvas-deep': c('canvas-deep'),
+        surface: { low: c('surface-low'), DEFAULT: c('surface'), high: c('surface-high'), highest: c('surface-highest') },
+        ink: { DEFAULT: c('ink'), muted: c('ink-muted'), subtle: c('ink-subtle'), faint: c('ink-faint') },
+        line: { DEFAULT: c('line'), strong: c('line-strong') },
+        primary: { DEFAULT: c('primary'), strong: c('primary-strong'), deep: c('primary-deep'), on: c('primary-on') },
+        accent: { DEFAULT: c('primary'), strong: c('primary-strong') },
+        info: c('info'),
+        success: c('success'),
+        warning: c('warning'),
+        danger: c('danger'),
       },
       boxShadow: {
-        glow: '0px 8px 32px rgba(139, 92, 246, 0.15)',
-        card: '0px 1px 2px rgba(0, 0, 0, 0.3)',
+        glow: 'var(--shadow-raised)',
+        card: 'var(--shadow-card)',
       },
       backgroundImage: {
-        'brand-gradient': 'linear-gradient(135deg, #a078ff 0%, #ec4899 100%)',
+        'brand-gradient': 'linear-gradient(135deg, var(--brand-a) 0%, var(--brand-b) 100%)',
       },
     },
   },

@@ -10,7 +10,7 @@ type Size = 'sm' | 'md' | 'lg';
 const buttonBase =
   'inline-flex items-center justify-center gap-8 whitespace-nowrap rounded-lg font-semibold transition-colors duration-150 disabled:cursor-not-allowed disabled:opacity-50';
 const buttonVariant: Record<Variant, string> = {
-  primary: 'bg-brand-gradient text-white shadow-glow hover:brightness-110',
+  primary: 'bg-brand-gradient text-white hover:brightness-110',
   secondary: 'border border-line-strong bg-surface-high text-ink hover:bg-surface-highest',
   ghost: 'text-ink-muted hover:bg-surface-high hover:text-ink',
   danger: 'border border-danger/30 bg-danger/10 text-danger hover:bg-danger/20',

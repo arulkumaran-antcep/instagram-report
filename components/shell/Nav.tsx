@@ -20,7 +20,7 @@ const isActive = (pathname: string, href: string) => (href === '/' ? pathname ==
 export function Logo() {
   return (
     <Link href="/" className="flex items-center gap-12 rounded-lg" aria-label="InstaReport home">
-      <span className="flex h-40 w-40 items-center justify-center rounded-lg bg-brand-gradient shadow-glow">
+      <span className="flex h-40 w-40 items-center justify-center rounded-lg bg-brand-gradient">
         <svg viewBox="0 0 24 24" className="h-20 w-20" fill="none" stroke="white" strokeWidth="2" aria-hidden>
           <rect x="3" y="3" width="18" height="18" rx="4" />
           <path d="M8 16v-3M12 16V8M16 16v-5" strokeLinecap="round" />
@@ -109,8 +109,8 @@ export function MobileNav() {
       {open &&
         createPortal(
         <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Menu">
-          <button type="button" className="absolute inset-0 bg-canvas-deep/80" aria-label="Close menu" onClick={() => setOpen(false)} />
-          <div className="relative flex h-full w-280 flex-col bg-surface-low px-20 py-20 shadow-glow">
+          <button type="button" className="absolute inset-0 bg-[rgb(var(--overlay)/0.55)]" aria-label="Close menu" onClick={() => setOpen(false)} />
+          <div className="relative flex h-full w-280 max-w-[85vw] flex-col border-r border-line bg-surface-low px-20 py-20">
             <div className="mb-24 flex items-center justify-between">
               <Logo />
               <button

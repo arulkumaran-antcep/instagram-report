@@ -1,13 +1,16 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { useEffect, useRef, useState } from 'react';
 import { ChevronDown, LogOut, Settings } from 'lucide-react';
-import { Avatar } from '@/components/ui';
+import { Avatar, cx } from '@/components/ui';
 
 export function UserMenu({ name, email, role }: { name: string; email: string; role: string }) {
   const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const pathname = usePathname();
+  useEffect(() => setOpen(false), [pathname]);
 
   useEffect(() => {
     if (!open) return;
@@ -30,17 +33,17 @@ export function UserMenu({ name, email, role }: { name: string; email: string; r
         aria-expanded={open}
         aria-haspopup="menu"
         aria-label={`Account menu for ${name}`}
-        className="flex items-center gap-10 rounded-lg py-4 pl-4 pr-8 hover:bg-surface-high"
+        className={cx('flex h-44 items-center gap-10 rounded-lg pl-4 pr-8 transition-colors hover:bg-surface-high', open && 'bg-surface-high')}
       >
         <span className="hidden text-right sm:block" aria-hidden>
           <span className="block text-body-sm font-semibold text-ink">{name}</span>
           <span className="block text-label-sm capitalize text-ink-subtle">{role}</span>
         </span>
         <Avatar name={name} size={40} />
-        <ChevronDown className="hidden h-16 w-16 text-ink-subtle sm:block" aria-hidden />
+        <ChevronDown className={cx('hidden h-16 w-16 text-ink-subtle transition-transform duration-150 sm:block', open && 'rotate-180')} aria-hidden />
       </button>
       {open && (
-        <div role="menu" className="absolute right-0 top-[calc(100%+8px)] z-40 w-240 rounded-xl border border-line bg-surface-high p-8 shadow-glow">
+        <div role="menu" className="absolute right-0 top-[calc(100%+8px)] z-40 w-240 rounded-xl border border-line bg-surface p-8 shadow-glow">
           <div className="border-b border-line px-10 pb-10 pt-4">
             <p className="truncate text-body-sm font-semibold text-ink">{name}</p>
             <p className="truncate text-body-sm text-ink-subtle">{email}</p>

@@ -2,6 +2,119 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Theme tokens. Light is the default; dark applies when <html data-theme="dark">.
+   Colours are space-separated RGB so Tailwind opacity modifiers (bg-primary/10) keep working. */
+:root {
+  color-scheme: light;
+
+  --c-canvas: 246 245 251;
+  --c-canvas-deep: 255 255 255; /* inputs */
+  --c-surface-low: 255 255 255; /* sidebar */
+  --c-surface: 255 255 255; /* cards */
+  --c-surface-high: 239 237 248; /* hover */
+  --c-surface-highest: 228 225 242;
+  --c-ink: 27 21 48;
+  --c-ink-muted: 67 59 92;
+  --c-ink-subtle: 111 104 133;
+  --c-ink-faint: 155 149 174;
+  --c-line: 229 226 240;
+  --c-line-strong: 207 202 223;
+  --c-primary: 109 59 215;
+  --c-primary-strong: 91 44 194;
+  --c-primary-deep: 74 31 168;
+  --c-primary-on: 255 255 255;
+  --c-info: 59 91 219;
+  --c-success: 21 128 61;
+  --c-warning: 180 83 9;
+  --c-danger: 185 28 28;
+
+  --c-series-a: 124 77 255;
+  --c-series-b: 219 39 119;
+
+  --brand-a: #8b5cf6;
+  --brand-b: #ec4899;
+  --shadow-card: 0 1px 2px rgba(45, 27, 105, 0.06);
+  --shadow-raised: 0 4px 16px rgba(45, 27, 105, 0.14), 0 1px 3px rgba(45, 27, 105, 0.08);
+  --overlay: 27 21 48;
+
+  /* Type scale. Smaller on phones; all values stay in px. */
+  --fs-label-sm: 10px;
+  --fs-label-md: 11px;
+  --fs-body-sm: 12px;
+  --fs-body-md: 13px;
+  --fs-body-lg: 15px;
+  --fs-headline-sm: 16px;
+  --fs-headline-md: 20px;
+  --fs-headline-lg: 24px;
+  --fs-headline-xl: 28px;
+  --fs-display: 34px;
+  --lh-body-sm: 17px;
+  --lh-body-md: 19px;
+  --lh-body-lg: 22px;
+  --lh-headline-sm: 22px;
+  --lh-headline-md: 28px;
+  --lh-headline-lg: 32px;
+  --lh-headline-xl: 36px;
+  --lh-display: 42px;
+}
+
+@media (min-width: 769px) {
+  :root {
+    --fs-label-sm: 11px;
+    --fs-label-md: 12px;
+    --fs-body-sm: 13px;
+    --fs-body-md: 14px;
+    --fs-body-lg: 16px;
+    --fs-headline-sm: 18px;
+    --fs-headline-md: 24px;
+    --fs-headline-lg: 32px;
+    --fs-headline-xl: 40px;
+    --fs-display: 56px;
+    --lh-body-sm: 18px;
+    --lh-body-md: 20px;
+    --lh-body-lg: 24px;
+    --lh-headline-sm: 24px;
+    --lh-headline-md: 32px;
+    --lh-headline-lg: 40px;
+    --lh-headline-xl: 48px;
+    --lh-display: 64px;
+  }
+}
+
+:root[data-theme='dark'] {
+  color-scheme: dark;
+
+  --c-canvas: 11 19 38; /* #0b1326 */
+  --c-canvas-deep: 6 14 32; /* #060e20 */
+  --c-surface-low: 19 27 46; /* #131b2e */
+  --c-surface: 23 31 51; /* #171f33 */
+  --c-surface-high: 34 42 61; /* #222a3d */
+  --c-surface-highest: 45 52 73; /* #2d3449 */
+  --c-ink: 218 226 253; /* #dae2fd */
+  --c-ink-muted: 203 195 215; /* #cbc3d7 */
+  --c-ink-subtle: 149 142 160; /* #958ea0 */
+  --c-ink-faint: 107 102 121; /* #6b6679 */
+  --c-line: 41 48 69;
+  --c-line-strong: 73 68 84; /* #494454 */
+  --c-primary: 208 188 255; /* #d0bcff */
+  --c-primary-strong: 160 120 255; /* #a078ff */
+  --c-primary-deep: 109 59 215; /* #6d3bd7 */
+  --c-primary-on: 35 0 92; /* #23005c */
+  --c-info: 173 198 255;
+  --c-success: 74 222 128;
+  --c-warning: 251 191 36;
+  --c-danger: 255 180 171;
+
+  --c-series-a: 155 114 251; /* #9b72fb */
+  --c-series-b: 236 72 153; /* #ec4899 */
+
+  --brand-a: #a078ff;
+  --brand-b: #ec4899;
+  --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-raised: 0 8px 32px rgba(139, 92, 246, 0.15);
+  --overlay: 6 14 32;
+}
+
 @layer base {
   html {
     font-size: 16px;
@@ -11,10 +124,10 @@
     font-feature-settings: 'cv11', 'ss01';
   }
   ::selection {
-    background: rgba(160, 120, 255, 0.35);
+    background: rgb(var(--c-primary) / 0.25);
   }
   :focus-visible {
-    outline: 2px solid #d0bcff;
+    outline: 2px solid rgb(var(--c-primary));
     outline-offset: 2px;
   }
   input::-webkit-outer-spin-button,
@@ -23,13 +136,21 @@
   }
   * {
     scrollbar-width: thin;
-    scrollbar-color: #2d3449 transparent;
+    scrollbar-color: rgb(var(--c-line-strong)) transparent;
+  }
+  /* 16px inputs on phones: anything smaller makes iOS zoom the page on focus. */
+  @media (max-width: 768px) {
+    input:not([type='checkbox']):not([type='radio']):not([type='file']),
+    select,
+    textarea {
+      font-size: 16px;
+    }
   }
 }
 
 @layer components {
   .card {
-    @apply rounded-xl border border-line bg-surface;
+    @apply rounded-xl border border-line bg-surface shadow-card;
   }
   .label {
     @apply text-label-md uppercase text-ink-subtle;
